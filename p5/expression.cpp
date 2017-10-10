@@ -1,5 +1,6 @@
 #include "expression.h"
 #include "variable.h"
+#include <cmath>
 
 
 Expression::Expression(int value)
@@ -380,7 +381,7 @@ int Expression::eval_int()
       if(m_lhs->get_type() == INT)
       {
         int val = m_lhs->eval_int();
-        return (abs(val));
+        return (std::abs(val));
       }
     }
     if(m_oper == FLOOR)
@@ -651,7 +652,7 @@ double Expression::eval_double()
       if(m_lhs->get_type() == DOUBLE)
       {
         double val = m_lhs->eval_double();
-        return (abs(val));
+        return (std::abs(val));
       }
     }
  		if(m_oper == RANDOM)
