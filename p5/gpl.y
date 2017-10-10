@@ -606,17 +606,17 @@ expression:
         Error::error(Error::INVALID_LEFT_OPERAND_TYPE, "%");
         $$ = new Expression(0);
       }
-      else if($3->get_type() == STRING)
+      if($3->get_type() == STRING)
       {
         Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, "%");
         $$ = new Expression(0);
       }
-      else if($1->get_type() == DOUBLE)
+      if($1->get_type() == DOUBLE)
       {
         Error::error(Error::INVALID_LEFT_OPERAND_TYPE, "%");
         $$ = new Expression(0);
       }
-      else if($3->get_type() == DOUBLE)
+      if($3->get_type() == DOUBLE)
       {
         Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, "%");
         $$ = new Expression(0);
@@ -649,7 +649,7 @@ expression:
     {
       if($2->get_type() == STRING)
       {
-        Error::error(Error::INVALID_LHS_OF_ASSIGNMENT, "!");
+        Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, "!");
         $$ = new Expression(0);
       }
       else

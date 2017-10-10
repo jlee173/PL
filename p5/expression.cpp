@@ -353,7 +353,7 @@ int Expression::eval_int()
       }
     }
   }
-  if(m_lhs != NULL && m_rhs == NULL)
+  else if(m_lhs != NULL && m_rhs == NULL)
   {
     if(m_oper == UNARY_MINUS)
     {
@@ -365,14 +365,14 @@ int Expression::eval_int()
     }
     if(m_oper == NOT)
     {
+      if(m_lhs->get_type() == INT)
+      {
+        int val = m_lhs->eval_int();
+        return (!val);
+      }
       if(m_lhs->get_type() == DOUBLE)
       {
         double val = m_lhs->eval_double();
-        return (!val);
-      }
-      else if(m_lhs->get_type() == INT)
-      {
-        int val = m_lhs->eval_int();
         return (!val);
       }
     }
@@ -543,6 +543,14 @@ double Expression::eval_double()
         return (val*(-1));
       }
     }
+		/*if(m_oper == NOT)
+		{
+			if(m_lhs->get_type() == DOUBLE)
+			{
+				double val = m_lhs->eval_double();
+				return (!val);
+			}
+		}*/
     if(m_oper == FLOOR)
     {
 			if(m_lhs->get_type() == DOUBLE)
