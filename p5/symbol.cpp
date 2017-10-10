@@ -27,28 +27,6 @@ Symbol::Symbol(std::string value, std::string name)
 
 }
 
-/*Symbol::Symbol(Gpl_type data, std::string name)
-{
-  if( data == INT) 
-  {
-    m_value_ptr = (void*) new int(0);
-    m_type = INT;
-  }
-  if( data == DOUBLE)
-  {
-    m_value_ptr = (void*) new double(0.0);
-    m_type = DOUBLE;
-  }
-  if( data == STRING)
-  {
-    m_value_ptr = (void*) new std::string(""); 
-    m_type = STRING;
-  }
-  m_id = name;
-  m_size = -1;
-}
-*/
-
 Symbol::Symbol(Gpl_type data, std::string name, int size)
 {
   if( data == INT)
@@ -150,3 +128,17 @@ std::string Symbol::get_string()
   return *((std::string*)(m_value_ptr));
 }
 
+int Symbol::get_int(int index)
+{
+	return *((int*)(m_value_ptr+index));
+}
+
+double Symbol::get_double(int index)
+{
+	return *((double*)(m_value_ptr+index));
+}
+
+std::string Symbol::get_string(int index)
+{
+	return *((std::string*)(m_value_ptr+index));
+}

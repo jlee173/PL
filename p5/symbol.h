@@ -16,6 +16,10 @@ class Symbol
     int get_int();
     double get_double();
     std::string get_string();
+    int get_int(int);
+    double get_double(int);
+    std::string get_string(int);
+
 
   private:
     static Symbol *m_instance;

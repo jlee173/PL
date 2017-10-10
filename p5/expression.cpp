@@ -58,7 +58,7 @@ Expression::Expression(Expression* lhs, Operator_type type)
   {
     m_type = DOUBLE;
   }
-  else if(m_oper == NOT)
+  else if(m_oper == NOT || m_oper == MOD)
   {
     m_type == INT;
   }
@@ -123,12 +123,9 @@ int Expression::eval_int()
     }
     else if(m_oper == MOD)
     { 
-      if(m_lhs->get_type() == INT && m_rhs->get_type() == INT)
-      {
         int value = m_lhs->eval_int();
         int value2 = m_rhs->eval_int();
         return (value%value2);
-      }
     }
     else if(m_oper == LESS_THAN)
     {

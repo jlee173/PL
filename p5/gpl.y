@@ -207,10 +207,10 @@ variable_declaration:
 		      {
 		        Error::error(Error::INVALID_TYPE_FOR_INITIAL_VALUE, gpl_type_to_string($3->get_type()), *$2, gpl_type_to_string($1));
 		      }
-		      else
-		      {
-       	  initial_value = $3->eval_double();
-	        }
+		      else if($3->get_type() == INT)
+						initial_value = $3->eval_int();
+				  else
+       	  	initial_value = $3->eval_double();
     	  }
           Symbol* my_symbol = new Symbol(initial_value, *$2);
       	  symbol_table->insert(*$2, my_symbol);
@@ -467,7 +467,15 @@ variable:
     } 
     | T_ID T_LBRACKET expression T_RBRACKET
     {
-      assert(false && "not implemented yet");
+			static Symbol_table *symbol_table = Symbol_table::instance();
+			Symbol *my_sym = symbol_table->lookup(*$1);
+		  $$ = new Variable(my_sym, $3);
+			/*
+			if($3->get_type() != INT)
+			{
+				if($3->get_type() == DOUBLE || $3->get_type() == STRING)
+				{
+					Error::error(Error::ARRAY_INDEX_MUST_BE_AN_INTEGER	*/
     }
     | T_ID T_PERIOD T_ID
     {
@@ -589,11 +597,14 @@ expression:
 	Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, "/");
         $$ = new Expression(0);
       }
-      if($3->eval_double() == 0)
-      {
-        Error::error(Error::DIVIDE_BY_ZERO_AT_PARSE_TIME, "/");
-	$$ = new Expression(0);
-      }
+			if($3->get_type() != STRING)
+			{
+      	if($3->eval_double() == 0)
+      	{
+        	Error::error(Error::DIVIDE_BY_ZERO_AT_PARSE_TIME, "/");
+					$$ = new Expression(0);
+      	}
+			}
       if($1->get_type() != STRING && $3->get_type() != STRING && $3->eval_double() != 0)
       {
         $$ = new Expression($1, DIVIDE, $3);
@@ -621,11 +632,14 @@ expression:
         Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, "%");
         $$ = new Expression(0);
       }
-      else if($3->eval_int() == 0)
-      {
-        Error::error(Error::MOD_BY_ZERO_AT_PARSE_TIME, "%");
-        $$ = new Expression(0);
-      }
+			if($3->get_type() != STRING)
+			{
+      	if($3->eval_double() == 0)
+      	{
+        	Error::error(Error::MOD_BY_ZERO_AT_PARSE_TIME, "%");
+        	$$ = new Expression(0);
+      	}
+			}
       else
         $$ = new Expression($1, MOD, $3);
     }
@@ -662,10 +676,18 @@ expression:
         Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, operator_to_string($1));
         $$ = new Expression(0);
       }
-			/*else if($1 == RANDOM)
-				ERROR RANDOM GUY FOR N < 1
-				--there is an error for runtime and an error for parse time--
-			*/
+			if($1 == RANDOM)
+			{
+				if($3->eval_double() < 1)
+				{
+					std::ostringstream num;
+					num << $3->eval_double();
+					Error::error(Error::INVALID_ARGUMENT_FOR_RANDOM, num.str());
+					$$ = new Expression(0);
+				}
+				else
+					$$ = new Expression($3, $1);
+			}
       else
         $$ = new Expression($3, $1);
     }
