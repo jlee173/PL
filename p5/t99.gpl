@@ -1,1 +1,1 @@
-int i = random(10.2);
+int i = !true || !false;

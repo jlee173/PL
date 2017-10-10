@@ -93,9 +93,7 @@ using namespace std;
 %token T_LESS_EQUAL          "<="
 %token T_GREATER_EQUAL       ">="
 %token T_EQUAL               "=="
-%token T_NOT_EQUAL           "!="
-
-%token T_AND                 "&&"
+%token T_NOT_EQUAL           "!=" %token T_AND                 "&&"
 %token T_OR                  "||"
 %token T_NOT                 "!"
 
@@ -188,7 +186,7 @@ variable_declaration:
 	      int initial_value = 0;
 	      if($3 != NULL)
 	      {
-		      if($3->get_type() == STRING)
+		      if($3->get_type() == DOUBLE || $3->get_type() == STRING)
 		      {
 		        Error::error(Error::INVALID_TYPE_FOR_INITIAL_VALUE, gpl_type_to_string($3->get_type()), *$2, gpl_type_to_string($1));
 		      }
@@ -198,7 +196,7 @@ variable_declaration:
    	      Symbol* my_symbol = new Symbol(initial_value, *$2);
    	      symbol_table->insert(*$2, my_symbol);
       }
-	    else if($1 == DOUBLE)
+	    if($1 == DOUBLE)
 	    {
 	      double initial_value = 0.0;
 	      if($3 != NULL)
@@ -207,7 +205,7 @@ variable_declaration:
 		      {
 		        Error::error(Error::INVALID_TYPE_FOR_INITIAL_VALUE, gpl_type_to_string($3->get_type()), *$2, gpl_type_to_string($1));
 		      }
-		      else if($3->get_type() == INT)
+		      if($3->get_type() == INT)
 						initial_value = $3->eval_int();
 				  else
        	  	initial_value = $3->eval_double();
@@ -215,7 +213,7 @@ variable_declaration:
           Symbol* my_symbol = new Symbol(initial_value, *$2);
       	  symbol_table->insert(*$2, my_symbol);
       }	
-	    else if($1 == STRING)
+	    if($1 == STRING)
 	    {
 	      std::string initial_value = "";
 	      if($3 != NULL)
@@ -463,7 +461,10 @@ variable:
     {
       static Symbol_table *symbol_table = Symbol_table::instance();
       Symbol *my_sym = symbol_table->lookup(*$1);
-      $$ = new Variable(my_sym);
+			if(my_sym == NULL)
+				Error::error(Error::UNDECLARED_VARIABLE, *$1);
+			else
+        $$ = new Variable(my_sym);
     } 
     | T_ID T_LBRACKET expression T_RBRACKET
     {
@@ -612,22 +613,12 @@ expression:
     }
     | expression T_MOD expression
     {
-      if($1->get_type() == STRING)
+      if($1->get_type() == STRING || $1->get_type() == DOUBLE)
       {
         Error::error(Error::INVALID_LEFT_OPERAND_TYPE, "%");
         $$ = new Expression(0);
       }
-      if($3->get_type() == STRING)
-      {
-        Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, "%");
-        $$ = new Expression(0);
-      }
-      if($1->get_type() == DOUBLE)
-      {
-        Error::error(Error::INVALID_LEFT_OPERAND_TYPE, "%");
-        $$ = new Expression(0);
-      }
-      if($3->get_type() == DOUBLE)
+      if($3->get_type() == STRING || $3->get_type() == DOUBLE)
       {
         Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, "%");
         $$ = new Expression(0);
@@ -640,7 +631,7 @@ expression:
         	$$ = new Expression(0);
       	}
 			}
-      else
+      if($1->get_type() == INT && $3->get_type() == INT)
         $$ = new Expression($1, MOD, $3);
     }
     | T_MINUS  expression %prec T_UNARY_OPS
@@ -659,7 +650,7 @@ expression:
         $$ = new Expression($2, UNARY_MINUS);
       }
     }
-    | T_NOT  expression 
+    | T_NOT %prec T_UNARY_OPS expression  
     {
       if($2->get_type() == STRING)
       {

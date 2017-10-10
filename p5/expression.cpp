@@ -32,7 +32,7 @@ Expression::Expression(Expression* lhs, Operator_type type, Expression* rhs)
   m_lhs = lhs;
   m_rhs = rhs;
   m_oper = type;
-  if(m_oper == LESS_THAN || m_oper == GREATER_THAN || m_oper == LESS_EQUAL || m_oper == GREATER_EQUAL || m_oper == EQUAL || m_oper == NOT_EQUAL || m_oper == OR || m_oper == AND)
+  if(m_oper == LESS_THAN || m_oper == GREATER_THAN || m_oper == LESS_EQUAL || m_oper == GREATER_EQUAL || m_oper == EQUAL || m_oper == NOT_EQUAL || m_oper == OR || m_oper == AND || m_oper == MOD)
   {
     m_type = INT;
   }
@@ -54,13 +54,13 @@ Expression::Expression(Expression* lhs, Operator_type type)
 {
   m_lhs = lhs;
   m_oper = type;
-  if(m_oper == SIN || m_oper == COS || m_oper == TAN || m_oper == ASIN|| m_oper == ACOS || m_oper == ATAN || m_oper == SQRT)
+  if(m_oper == NOT || m_oper == RANDOM)
+  {
+    m_type = INT;
+  }
+  else if(m_oper == SIN || m_oper == COS || m_oper == TAN || m_oper == ASIN|| m_oper == ACOS || m_oper == ATAN || m_oper == SQRT)
   {
     m_type = DOUBLE;
-  }
-  else if(m_oper == NOT || m_oper == MOD)
-  {
-    m_type == INT;
   }
   else if(m_lhs->get_type() == DOUBLE)
   {
@@ -316,7 +316,7 @@ int Expression::eval_int()
         if(left && right)
           return 1;
         else 
-   	  return 0;
+   	  		return 0;
       }
        else if(m_lhs->get_type() == INT && m_rhs->get_type() == INT)
       {
@@ -330,7 +330,7 @@ int Expression::eval_int()
     }
     else if(m_oper == OR)
     {
-      if(m_lhs->get_type() == DOUBLE || m_rhs->get_type() == DOUBLE)
+      if(m_lhs->get_type() == DOUBLE && m_rhs->get_type() == DOUBLE)
       {
         double left = m_lhs->eval_double();
         double right = m_rhs->eval_double();
@@ -349,6 +349,7 @@ int Expression::eval_int()
           return 0;
       }
     }
+		
   }
   else if(m_lhs != NULL && m_rhs == NULL)
   {
@@ -362,16 +363,8 @@ int Expression::eval_int()
     }
     if(m_oper == NOT)
     {
-      if(m_lhs->get_type() == INT)
-      {
-        int val = m_lhs->eval_int();
-        return (!val);
-      }
-      if(m_lhs->get_type() == DOUBLE)
-      {
-        double val = m_lhs->eval_double();
-        return (!val);
-      }
+      double val = m_lhs->eval_double();
+      return (val == 0);
     }
     if(m_oper == ABS)
     {
@@ -386,8 +379,7 @@ int Expression::eval_int()
       if(m_lhs->get_type() == DOUBLE)
       {
         double val = m_lhs->eval_double();
-        int floor_d = floor(val);
-        return floor_d;
+        return floor(val);
       }
       else if(m_lhs->get_type() == INT)
       {
