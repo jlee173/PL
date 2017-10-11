@@ -1,6 +1,5 @@
 #include <iostream>
 #include "gpl_type.h"
-//#include "symbol.h"
 
 class Expression;
 class Symbol;

@@ -19,6 +19,7 @@ class Symbol
     int get_int(int);
     double get_double(int);
     std::string get_string(int);
+		int get_size();
 
 
   private:

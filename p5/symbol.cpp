@@ -105,11 +105,6 @@ std::string Symbol::get_id()
 
 Gpl_type Symbol::get_type()
 {
-  if(m_size > 0)
-  {
-    return (Gpl_type)(m_type-ARRAY);
-  }
-  else
     return m_type;
 }
 
@@ -141,4 +136,9 @@ double Symbol::get_double(int index)
 std::string Symbol::get_string(int index)
 {
 	return *((std::string*)(m_value_ptr+index));
+}
+
+int Symbol::get_size()
+{
+	return m_size;
 }

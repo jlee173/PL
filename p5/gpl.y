@@ -239,17 +239,27 @@ variable_declaration:
     }
     | simple_type  T_ID  T_LBRACKET expression T_RBRACKET
     {
-	  if( $4 == 0)
+			
+	  if($4->get_type() != INT || $4->eval_int() <= 0)
 	  {
-		Error::error(Error::INVALID_ARRAY_SIZE, *$2, "0");
+			if($4->get_type() != INT)
+				Error::error(Error::ARRAY_SIZE_MUST_BE_AN_INTEGER, gpl_type_to_base_string($4->get_type()), *$2);
+			else
+				Error::error(Error::INVALID_ARRAY_SIZE, *$2, std::to_string($4->eval_int()));
 	  }
+		else
+		{
       static Symbol_table *symbol_table = Symbol_table::instance();
 	    if( symbol_table->lookup(*$2) != NULL)
       {
         Error::error(Error::PREVIOUSLY_DECLARED_VARIABLE, *$2);
       }
-      Symbol* my_symbol = new Symbol($1, *$2);
-      symbol_table->insert(*$2, my_symbol);
+			else
+			{
+      	Symbol* my_symbol = new Symbol($1, *$2, $4->eval_int());
+      	symbol_table->insert(*$2, my_symbol);
+			}
+		}
     }
     ;
 
@@ -462,7 +472,10 @@ variable:
       static Symbol_table *symbol_table = Symbol_table::instance();
       Symbol *my_sym = symbol_table->lookup(*$1);
 			if(my_sym == NULL)
+			{
 				Error::error(Error::UNDECLARED_VARIABLE, *$1);
+				$$ = new Variable(new Symbol(0, ""));
+			}
 			else
         $$ = new Variable(my_sym);
     } 
@@ -470,13 +483,25 @@ variable:
     {
 			static Symbol_table *symbol_table = Symbol_table::instance();
 			Symbol *my_sym = symbol_table->lookup(*$1);
-		  $$ = new Variable(my_sym, $3);
-			/*
-			if($3->get_type() != INT)
+			if(my_sym == NULL)
+			{
+				Error::error(Error::UNDECLARED_VARIABLE, *$1+"[]");
+				$$ = new Variable(new Symbol(0, ""));
+			}
+			else if(my_sym->get_size() == -1)
+			{
+				Error::error(Error::VARIABLE_NOT_AN_ARRAY, *$1);
+				$$ = new Variable(new Symbol(0, ""));
+			}
+			else if($3->get_type() != INT)
 			{
 				if($3->get_type() == DOUBLE || $3->get_type() == STRING)
 				{
-					Error::error(Error::ARRAY_INDEX_MUST_BE_AN_INTEGER	*/
+					Error::error(Error::ARRAY_INDEX_MUST_BE_AN_INTEGER, *$1, "A " +gpl_type_to_string($3->get_type())+" expression");
+					$$ = new Variable(new Symbol(0, ""));
+				}
+			}
+		  else $$ = new Variable(my_sym, $3);
     }
     | T_ID T_PERIOD T_ID
     {
@@ -623,16 +648,16 @@ expression:
         Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, "%");
         $$ = new Expression(0);
       }
-			if($3->get_type() != STRING)
+			else
 			{
-      	if($3->eval_double() == 0)
+      	if($3->eval_int() == 0)
       	{
         	Error::error(Error::MOD_BY_ZERO_AT_PARSE_TIME, "%");
         	$$ = new Expression(0);
       	}
-			}
-      if($1->get_type() == INT && $3->get_type() == INT)
+				else
         $$ = new Expression($1, MOD, $3);
+			}
     }
     | T_MINUS  expression %prec T_UNARY_OPS
     {
@@ -667,7 +692,7 @@ expression:
         Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, operator_to_string($1));
         $$ = new Expression(0);
       }
-			if($1 == RANDOM)
+			else if($1 == RANDOM)
 			{
 				if($3->eval_double() < 1)
 				{

@@ -1,7 +1,6 @@
 #include "expression.h"
 #include "variable.h"
-#include <cmath>
-
+#include <cmath> 
 
 Expression::Expression(int value)
 {
@@ -23,7 +22,18 @@ Expression::Expression(std::string *value)
 
 Expression::Expression(Variable* var)
 {
-  m_type = var->get_type();
+	if(var->get_type() == INT)
+		m_type = INT;
+	if(var->get_type() == DOUBLE)
+		m_type = DOUBLE;
+	if(var->get_type() == STRING)
+		m_type = STRING;
+	if(var->get_type() == INT_ARRAY)
+		m_type = INT;
+	if(var->get_type() == DOUBLE_ARRAY)
+		m_type = DOUBLE;
+	if(var->get_type() == STRING_ARRAY)
+		m_type = STRING;
   m_variable = var;
 }
 
@@ -54,7 +64,7 @@ Expression::Expression(Expression* lhs, Operator_type type)
 {
   m_lhs = lhs;
   m_oper = type;
-  if(m_oper == NOT || m_oper == RANDOM)
+  if(m_oper == NOT || m_oper == RANDOM || m_oper == FLOOR)
   {
     m_type = INT;
   }
@@ -330,7 +340,7 @@ int Expression::eval_int()
     }
     else if(m_oper == OR)
     {
-      if(m_lhs->get_type() == DOUBLE && m_rhs->get_type() == DOUBLE)
+      if(m_lhs->get_type() == DOUBLE || m_rhs->get_type() == DOUBLE)
       {
         double left = m_lhs->eval_double();
         double right = m_rhs->eval_double();
@@ -339,7 +349,7 @@ int Expression::eval_int()
         else
           return 0;
       }
-       else if(m_lhs->get_type() == INT && m_rhs->get_type() == INT)
+       else if(m_lhs->get_type() == INT || m_rhs->get_type() == INT)
       {
         int left = m_lhs->eval_int();
         int right = m_rhs->eval_int();
@@ -410,6 +420,7 @@ int Expression::eval_int()
 			}
 		}*/
   }
+return 0;
 }
 
 double Expression::eval_double()
@@ -652,19 +663,19 @@ double Expression::eval_double()
         return (std::abs(val));
       }
     }
- 		if(m_oper == RANDOM)
+ 		/*if(m_oper == RANDOM)
     {
  			if(m_lhs->get_type() == DOUBLE)
 			{
         double val = m_lhs->eval_double();
         int floor_d = floor(val);
-				/*if(floor_d < 1)
-				{
-					Error::error(Error::INVALID_ARGUMENT_FOR_RANDOM*/
+				if(floor_d < 1)
+					Error::error(Error::INVALID_ARGUMENT_FOR_RANDOM
         return rand() % floor_d + 0;
 			}
-		}
+		}*/
   }
+return 0;
 }  
 
 std::string Expression::eval_string()
@@ -699,6 +710,7 @@ std::string Expression::eval_string()
         return total;
     }
   }
+return "";
 } 
 
 
