@@ -129,6 +129,7 @@ void Symbol::print()
 	if(m_type == CIRCLE || m_type == RECTANGLE || m_type == TRIANGLE || m_type == TEXTBOX || m_type == PIXMAP)
 	{
 		((Game_object*)(m_value_ptr))->print(m_id, std::cout);
+		std::cout << std::endl;
 	}
 }
 

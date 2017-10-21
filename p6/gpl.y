@@ -14,6 +14,8 @@ extern int line_count;            // current line in the input; from record.l
 
 using namespace std;
 
+Game_object* cur_object_under_construction;
+
 // bison syntax to indicate the end of the header
 %}
 
@@ -132,6 +134,7 @@ using namespace std;
 %type  <union_expression> primary_expression
 %type  <union_variable> variable
 %type  <union_operator_type> math_operator 
+%type  <union_gpl_type> object_type
 
 
 // special token that does not match any production
@@ -293,17 +296,39 @@ optional_initializer:
 
 //---------------------------------------------------------------------
 object_declaration:
-    object_type T_ID T_LPAREN parameter_list_or_empty T_RPAREN
+    object_type T_ID 
+		{
+			Symbol* sym = new Symbol($1, *$2); 
+			cur_object_under_construction = sym->get_game_object_value();
+      static Symbol_table *symbol_table = Symbol_table::instance();
+      symbol_table->insert(*$2, sym);
+		}
+		T_LPAREN parameter_list_or_empty T_RPAREN
     | object_type T_ID T_LBRACKET expression T_RBRACKET
     ;
 
 //---------------------------------------------------------------------
 object_type:
     T_TRIANGLE
+		{
+			$$ = TRIANGLE;
+		}
     | T_PIXMAP
+    {
+      $$ = PIXMAP;
+    }
     | T_CIRCLE
+    {
+      $$ = CIRCLE;
+    }
     | T_RECTANGLE
+    {
+      $$ = RECTANGLE;
+    }
     | T_TEXTBOX
+    {
+      $$ = TEXTBOX;
+    }
     ;
 
 //---------------------------------------------------------------------
