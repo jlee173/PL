@@ -60,12 +60,36 @@ Symbol::Symbol(Gpl_type data, std::string name, int size)
   m_size = size;
 }
 
-/*Symbol::Symbol(Gpl_type object_type, std::string name)
+Symbol::Symbol(Gpl_type object_type, std::string name)
 {
-
-
+	if(object_type == CIRCLE)
+	{
+		m_type = CIRCLE;
+		m_value_ptr = (void*) new Circle();
+	}
+  else if(object_type == RECTANGLE)
+  {
+    m_type = RECTANGLE;
+		m_value_ptr = (void*) new Rectangle();
+  }
+  else if(object_type == TRIANGLE)
+  {
+    m_type = TRIANGLE;
+		m_value_ptr = (void*) new Triangle();
+  }
+  else if(object_type == TEXTBOX)
+  {
+    m_type = TEXTBOX;
+		m_value_ptr = (void*) new Textbox();
+  }
+  else if(object_type == PIXMAP)
+  {
+    m_type = PIXMAP;
+		m_value_ptr = (void*) new Pixmap();
+  }
+	m_id = name;
+	m_size = -1;
 }
-*/
 
 void Symbol::print()
 {
@@ -73,35 +97,39 @@ void Symbol::print()
   {
     std::cout << gpl_type_to_string(m_type) << " " << m_id << " = " << *((int*)m_value_ptr) << std::endl;
   }
-if(m_type == DOUBLE)
+	if(m_type == DOUBLE)
   {
     std::cout << gpl_type_to_string(m_type) << " " << m_id << " = " << *((double*)m_value_ptr) << std::endl;
   }
-if(m_type == STRING)
+	if(m_type == STRING)
   {
     std::cout << gpl_type_to_string(m_type) << " " << m_id << " = \"" << *((std::string*)m_value_ptr) << "\"" << std::endl;
   }
-if(m_type == INT_ARRAY)
+	if(m_type == INT_ARRAY)
   {
     for( int i = 0; i < m_size; i++)
     {
       std::cout << gpl_type_to_base_string(m_type) << " " << m_id << "[" << i << "]" << " = "  << *((int*)m_value_ptr+i) << std::endl;
     }
   }
-if(m_type == DOUBLE_ARRAY)
+	if(m_type == DOUBLE_ARRAY)
   {
     for( int i = 0; i < m_size; i++)
     {
       std::cout << gpl_type_to_base_string(m_type) << " " << m_id << "[" << i << "]" << " = "  << *((double*)m_value_ptr+i) << std::endl;
     }
   } 
-if(m_type == STRING_ARRAY)
+	if(m_type == STRING_ARRAY)
   {
     for( int i = 0; i < m_size; i++)
     {
       std::cout << gpl_type_to_base_string(m_type) << " " << m_id << "[" << i << "]" << " = \""  << *((std::string*)m_value_ptr+i) << "\"" << std::endl;
     }
   }
+	if(m_type == CIRCLE || m_type == RECTANGLE || m_type == TRIANGLE || m_type == TEXTBOX || m_type == PIXMAP)
+	{
+		((Game_object*)(m_value_ptr))->print(m_id, std::cout);
+	}
 }
 
 std::string Symbol::get_id()
@@ -136,7 +164,7 @@ int Symbol::get_int(int index)
 
 double Symbol::get_double(int index)
 {
-	return *((double*)m_value_ptr+index);
+	return *((double*)m_value_ptr);
 }
 
 std::string Symbol::get_string(int index)
@@ -148,10 +176,15 @@ int Symbol::get_size()
 {
 	return m_size;
 }
+	
+Game_object* Symbol::get_game_object_value()
+{
+	return (Game_object*)(m_value_ptr);
+}
 
 bool Symbol::is_game_object()
 {
 	return (m_type == CIRCLE || m_type == RECTANGLE || m_type == TRIANGLE || m_type == TEXTBOX || m_type == PIXMAP);
 }
 
-		
+	
