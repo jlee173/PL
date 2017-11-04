@@ -346,6 +346,14 @@ parameter_list :
 //---------------------------------------------------------------------
 parameter:
     T_ID T_ASSIGN expression
+		{
+	    if($3->get_type() == STRING || $3->get_type() == DOUBLE)
+      {
+        Error::error(Error::INCORRECT_CONSTRUCTOR_PARAMETER_TYPE);
+			}
+			else
+				Status status = cur_object_under_construction->set_member_variable(*$1, $3->eval_int());
+		}
     ;
 
 //---------------------------------------------------------------------
