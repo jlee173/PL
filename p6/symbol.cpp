@@ -87,6 +87,11 @@ Symbol::Symbol(Gpl_type object_type, std::string name)
     m_type = PIXMAP;
 		m_value_ptr = (void*) new Pixmap();
   }
+	else if(object_type == ANIMATION_BLOCK)
+	{
+		m_type = ANIMATION_BLOCK;
+		m_value_ptr = (void*) new Animation_block();
+	}
 	m_id = name;
 	m_size = -1;
 }
@@ -188,4 +193,8 @@ bool Symbol::is_game_object()
 	return (m_type == CIRCLE || m_type == RECTANGLE || m_type == TRIANGLE || m_type == TEXTBOX || m_type == PIXMAP);
 }
 
-	
+Animation_block* Symbol::get_animation_block_value()
+{
+	return (Animation_block*)(m_value_ptr);
+}
+

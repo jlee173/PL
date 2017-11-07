@@ -6,6 +6,7 @@
 #include "triangle.h"
 #include "textbox.h"
 #include "pixmap.h"
+#include "animation_block.h"
 
 class Symbol
 {
@@ -29,6 +30,7 @@ class Symbol
 		int get_size();
 		bool is_game_object();
 		Game_object* get_game_object_value();
+		Animation_block* get_animation_block_value();
 
   private:
     static Symbol *m_instance;

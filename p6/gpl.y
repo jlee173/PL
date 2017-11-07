@@ -15,6 +15,7 @@ extern int line_count;            // current line in the input; from record.l
 using namespace std;
 
 Game_object* cur_object_under_construction;
+Animation_block* animation_block_just_created;
 
 // bison syntax to indicate the end of the header
 %}
@@ -27,6 +28,7 @@ Game_object* cur_object_under_construction;
  Expression     *union_expression;
  Variable       *union_variable;
  Operator_type  union_operator_type;
+ Symbol 				*union_symbol;
 }
 
 // turn on verbose (longer) error messages
@@ -135,6 +137,7 @@ Game_object* cur_object_under_construction;
 %type  <union_variable> variable
 %type  <union_operator_type> math_operator 
 %type  <union_gpl_type> object_type
+%type  <union_symbol>  animation_parameter
 
 
 // special token that does not match any production
@@ -359,6 +362,13 @@ parameter:
 //---------------------------------------------------------------------
 forward_declaration:
     T_FORWARD T_ANIMATION T_ID T_LPAREN animation_parameter T_RPAREN
+		{
+			Symbol* sym = new Symbol(ANIMATION_BLOCK, *$3);
+      static Symbol_table *symbol_table = Symbol_table::instance();
+      symbol_table->insert(*$3, sym);
+			animation_block_just_created = sym->get_animation_block_value();
+			animation_block_just_created->initialize($5, *$3);
+		}
     ;
 
 //---------------------------------------------------------------------
@@ -393,6 +403,15 @@ animation_block:
 //---------------------------------------------------------------------
 animation_parameter:
     object_type T_ID
+    {
+      Symbol* sym = new Symbol($1, *$2);
+      static Symbol_table *symbol_table = Symbol_table::instance();
+      symbol_table->insert(*$2, sym);
+			cur_object_under_construction = sym->get_game_object_value();
+			cur_object_under_construction->never_animate();
+			cur_object_under_construction->never_draw();
+			$$ = sym;
+    }
     ;
 
 //---------------------------------------------------------------------
