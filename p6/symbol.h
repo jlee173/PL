@@ -31,6 +31,7 @@ class Symbol
 		bool is_game_object();
 		Game_object* get_game_object_value();
 		Animation_block* get_animation_block_value();
+		Game_object* get_game_object_array_value(int);
 
   private:
     static Symbol *m_instance;

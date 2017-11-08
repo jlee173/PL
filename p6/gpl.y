@@ -16,6 +16,9 @@ using namespace std;
 
 Game_object* cur_object_under_construction;
 Animation_block* animation_block_just_created;
+std::string cur_object_under_construction_name;
+std::string animation_block_just_created_name;
+
 
 // bison syntax to indicate the end of the header
 %}
@@ -303,6 +306,7 @@ object_declaration:
 		{
 			Symbol* sym = new Symbol($1, *$2); 
 			cur_object_under_construction = sym->get_game_object_value();
+			cur_object_under_construction_name = *$2;
       static Symbol_table *symbol_table = Symbol_table::instance();
       symbol_table->insert(*$2, sym);
 		}
@@ -350,13 +354,58 @@ parameter_list :
 parameter:
     T_ID T_ASSIGN expression
 		{
-	    if($3->get_type() == STRING || $3->get_type() == DOUBLE)
-      {
-        Error::error(Error::INCORRECT_CONSTRUCTOR_PARAMETER_TYPE);
-			}
+			Status status;
+			Gpl_type type;
+			if(status == MEMBER_NOT_DECLARED)
+				Error::error(Error::UNKNOWN_CONSTRUCTOR_PARAMETER, cur_object_under_construction_name, *$1);
 			else
-				Status status = cur_object_under_construction->set_member_variable(*$1, $3->eval_int());
-		}
+			{
+				status = cur_object_under_construction->get_member_variable_type(*$1, type);
+				if(type == INT)
+				{
+					if($3->get_type() == STRING || $3->get_type() == DOUBLE)
+					{
+						Error::error(Error::INCORRECT_CONSTRUCTOR_PARAMETER_TYPE, cur_object_under_construction_name, *$1);
+					}
+					else
+						status = cur_object_under_construction->set_member_variable(*$1, $3->eval_int());
+				}
+				if(type == DOUBLE)
+				{
+					if($3->get_type() == STRING)
+					{
+						Error::error(Error::INCORRECT_CONSTRUCTOR_PARAMETER_TYPE, cur_object_under_construction_name, *$1);
+					}
+			  	/*else if($3->get_type() == INT)
+					{
+						status = cur_object_under_construction->set_member_variable(*$1, $3->eval_int());
+					}
+					else*/
+						status = cur_object_under_construction->set_member_variable(*$1, $3->eval_double());
+			  }
+        if(type == STRING)
+        {
+          /*if($3->get_type() == DOUBLE)
+          {
+            status = cur_object_under_construction->set_member_variable(*$1, $3->eval_double());
+          }
+          else if($3->get_type() == INT)
+          {
+						std::cout << "BITCH" << std::endl;
+            status = cur_object_under_construction->set_member_variable(*$1, $3->eval_int());
+          }
+          else*/
+            status = cur_object_under_construction->set_member_variable(*$1, $3->eval_string());
+        }
+				if(type == ANIMATION_BLOCK)
+				{
+					if($3->get_type() != type)
+						Error::error(Error::TYPE_MISMATCH_BETWEEN_ANIMATION_BLOCK_AND_OBJECT, cur_object_under_construction_name, animation_block_just_created_name);
+					else
+						status = cur_object_under_construction->set_member_variable(*$1, $3->eval_animation_block());
+				}	
+			}
+		}				
     ;
 
 //---------------------------------------------------------------------
@@ -368,6 +417,7 @@ forward_declaration:
       symbol_table->insert(*$3, sym);
 			animation_block_just_created = sym->get_animation_block_value();
 			animation_block_just_created->initialize($5, *$3);
+			animation_block_just_created_name = *$3;
 		}
     ;
 
@@ -557,7 +607,15 @@ variable:
     }
     | T_ID T_PERIOD T_ID
     {
-      assert(false && "not implemented yet");
+      static Symbol_table *symbol_table = Symbol_table::instance();
+      Symbol *my_sym = symbol_table->lookup(*$1);
+      if(my_sym == NULL)
+      { 
+        Error::error(Error::UNDECLARED_VARIABLE, *$1);
+        $$ = new Variable(new Symbol(0, ""));
+      }
+      else
+        $$ = new Variable(my_sym, *$3);
     }
     | T_ID T_LBRACKET expression T_RBRACKET T_PERIOD T_ID
     {
@@ -659,7 +717,8 @@ expression:
         $$ = new Expression(0);
       }
       if($1->get_type() != STRING && $3->get_type() != STRING)
-      {
+      {	
+				std::cout << gpl_type_to_base_string($1->get_type()) << " " << gpl_type_to_base_string($3->get_type()) << std::endl;
         $$ = new Expression($1, MULTIPLY, $3);
       }
     }

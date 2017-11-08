@@ -56,6 +56,31 @@ Symbol::Symbol(Gpl_type data, std::string name, int size)
     }
     m_type = STRING_ARRAY;
   }
+  if( data == RECTANGLE)
+  {
+    m_value_ptr = (void*) new Rectangle[size];
+    m_type = RECTANGLE_ARRAY;
+  }
+  if( data == CIRCLE)
+  {
+    m_value_ptr = (void*) new Circle[size];
+    m_type = CIRCLE_ARRAY;
+  }
+  if( data == TRIANGLE)
+  {
+    m_value_ptr = (void*) new Triangle[size];
+    m_type = TRIANGLE_ARRAY;
+  }
+  if( data == TEXTBOX)
+  {
+    m_value_ptr = (void*) new Textbox[size];
+    m_type = TEXTBOX_ARRAY;
+  }
+  if( data == PIXMAP)
+  {
+    m_value_ptr = (void*) new Pixmap[size];
+    m_type = PIXMAP_ARRAY;
+  }
   m_id = name;
   m_size = size;
 }
@@ -136,6 +161,8 @@ void Symbol::print()
 		((Game_object*)(m_value_ptr))->print(m_id, std::cout);
 		std::cout << std::endl;
 	}
+	if(m_type == ANIMATION_BLOCK)
+		std::cout << gpl_type_to_base_string(m_type) << " " << m_id << std::endl;
 }
 
 std::string Symbol::get_id()
@@ -198,3 +225,33 @@ Animation_block* Symbol::get_animation_block_value()
 	return (Animation_block*)(m_value_ptr);
 }
 
+Game_object* Symbol::get_game_object_array_value(int size)
+{
+  if(m_type == RECTANGLE)
+  {
+    Rectangle *object_ptr = (Rectangle*)m_value_ptr;
+		return &(object_ptr[size]);
+  }
+  if(m_type == CIRCLE)
+  {
+    Circle *object_ptr = (Circle*)m_value_ptr;
+		return &(object_ptr[size]);
+  }
+  if(m_type == TRIANGLE)
+  {
+    Triangle *object_ptr = (Triangle*)m_value_ptr;
+		return &(object_ptr[size]);
+  }
+  if(m_type == TEXTBOX)
+  {
+    Textbox *object_ptr = (Textbox*)m_value_ptr;
+		return &(object_ptr[size]);
+  }
+  if(m_type == PIXMAP)
+  {
+    Pixmap *object_ptr = (Pixmap*)m_value_ptr;
+		return &(object_ptr[size]);
+  }
+}
+	
+	

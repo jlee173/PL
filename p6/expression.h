@@ -4,9 +4,9 @@
 #include "gpl_type.h"
 #define _USE_MATH_DEFINES
 #include <math.h>
+#include "animation_block.h"
 
 class Variable;
-
 
 class Expression
 {
@@ -21,6 +21,7 @@ class Expression
 	double eval_double();
 	std::string eval_string();
 	Gpl_type get_type();
+	Animation_block* eval_animation_block();
 	
   private:
 	Expression *m_lhs = NULL;

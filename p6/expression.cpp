@@ -34,6 +34,8 @@ Expression::Expression(Variable* var)
 		m_type = DOUBLE;
 	if(var->get_type() == STRING_ARRAY)
 		m_type = STRING;
+	if(var->get_type() == ANIMATION_BLOCK)
+		m_type = ANIMATION_BLOCK;
   m_variable = var;
 }
 
@@ -717,4 +719,9 @@ return "";
 Gpl_type Expression::get_type()
 {
   return m_type;
+}
+
+Animation_block* Expression::eval_animation_block()
+{
+	return m_variable->get_animation_block_val();	
 } 

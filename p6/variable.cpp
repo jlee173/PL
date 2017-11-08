@@ -17,6 +17,17 @@ Variable::Variable(Symbol *my_sym, Expression *my_expr)
  	m_expr = my_expr;
 }
 
+Variable::Variable(Symbol *my_sym, std::string my_field)
+{
+	m_sym = my_sym;
+  Status status =	my_sym->get_game_object_value()->get_member_variable_type(m_field, m_type);
+	m_type = m_type;
+	if(status == OK)
+ 	{
+		m_field = my_field;
+	}
+}
+
 Gpl_type Variable::get_type()
 {
   return m_sym->get_type();
@@ -24,10 +35,22 @@ Gpl_type Variable::get_type()
 
 int Variable::get_int_val()
 {
-	if(m_sym->get_size() < 1)
-	{
-  	return m_sym->get_int(); 
-	}
+  Game_object *game_obj;
+  int my_val;
+  if(m_sym->get_size() == -1)
+  {
+    if(m_field == "")
+    { 
+      return m_sym->get_int();
+    }
+    else
+    {
+      game_obj = m_sym->get_game_object_value();
+      game_obj->get_member_variable(m_field, my_val);
+      return my_val;
+    }
+  }
+
 	if(m_expr == NULL)
 	{
 		Error::error(Error::VARIABLE_IS_AN_ARRAY, m_sym->get_id());
@@ -48,8 +71,21 @@ int Variable::get_int_val()
 
 double Variable::get_double_val()
 {
+	Game_object *game_obj;
+	double my_val;
 	if(m_sym->get_size() == -1)
-  	return m_sym->get_double(); 
+	{
+		if(m_field == "")
+		{
+			return m_sym->get_double(); 
+		}
+		else
+		{
+			game_obj = m_sym->get_game_object_value();
+			game_obj->get_member_variable(m_field, my_val);			
+			return my_val;
+		}
+	}
 
 	if(m_expr == NULL)
 	{
@@ -72,8 +108,21 @@ double Variable::get_double_val()
 
 std::string Variable::get_string_val()
 {
-	if(m_sym->get_size() == -1)
-  	return m_sym->get_string(); 
+  Game_object *game_obj;
+  std::string my_val;
+  if(m_sym->get_size() == -1)
+  {
+    if(m_field == "")
+    { 
+      return m_sym->get_string();
+    }
+    else
+    {
+      game_obj = m_sym->get_game_object_value();
+      game_obj->get_member_variable(m_field, my_val);
+      return my_val;
+		}
+  }
 
 	if(m_expr == NULL)
 	{
@@ -109,3 +158,7 @@ std::string Variable::get_string_index(int index)
   return m_sym->get_string(index);
 }
 
+Animation_block* Variable::get_animation_block_val()
+{
+	return m_sym->get_animation_block_value();
+}
