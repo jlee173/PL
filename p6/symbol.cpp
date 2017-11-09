@@ -76,8 +76,7 @@ Symbol::Symbol(Gpl_type data, std::string name, int size)
     m_value_ptr = (void*) new Textbox[size];
     m_type = TEXTBOX_ARRAY;
   }
-  if( data == PIXMAP)
-  {
+  if( data == PIXMAP) {
     m_value_ptr = (void*) new Pixmap[size];
     m_type = PIXMAP_ARRAY;
   }
@@ -163,6 +162,47 @@ void Symbol::print()
 	}
 	if(m_type == ANIMATION_BLOCK)
 		std::cout << gpl_type_to_base_string(m_type) << " " << m_id << std::endl;
+	if(m_type == CIRCLE_ARRAY)
+	{
+	  for(int i = 0; i < m_size; i++)
+		{
+			((Circle*)m_value_ptr+i)->print(m_id+"["+std::to_string(i)+"]", std::cout);
+			std::cout << std::endl;
+		}
+	}
+	if(m_type == RECTANGLE_ARRAY)
+	{
+	  for(int i = 0; i < m_size; i++)
+		{
+			((Rectangle*)m_value_ptr+i)->print(m_id+"["+std::to_string(i)+"]", std::cout);
+			std::cout << std::endl;
+		}
+	}
+	if(m_type == TRIANGLE_ARRAY)
+	{
+	  for(int i = 0; i < m_size; i++)
+		{
+			((Triangle*)m_value_ptr+i)->print(m_id+"["+std::to_string(i)+"]", std::cout);
+			std::cout << std::endl;
+		}
+	}
+	if(m_type == TEXTBOX_ARRAY)
+	{
+	  for(int i = 0; i < m_size; i++)
+		{
+			((Textbox*)m_value_ptr+i)->print(m_id+"["+std::to_string(i)+"]", std::cout);
+			std::cout << std::endl;
+		}
+	}
+	if(m_type == PIXMAP_ARRAY)
+	{
+	  for(int i = 0; i < m_size; i++)
+		{
+			((Pixmap*)m_value_ptr+i)->print(m_id+"["+std::to_string(i)+"]", std::cout);
+			std::cout << std::endl;
+		}
+	}
+
 }
 
 std::string Symbol::get_id()
@@ -190,19 +230,83 @@ std::string Symbol::get_string()
   return *((std::string*)(m_value_ptr));
 }
 
-int Symbol::get_int(int index)
+int Symbol::get_int(int index, std::string m_field)
 {
-	return *((int*)m_value_ptr+index);
+	if(m_type != CIRCLE_ARRAY && m_type != RECTANGLE_ARRAY && m_type != TRIANGLE_ARRAY && m_type != TEXTBOX_ARRAY && m_type != PIXMAP_ARRAY)
+	{
+		return *((int*)m_value_ptr+index);
+	}
+		int val;
+		Status status;
+	switch(m_type)
+	{
+		case RECTANGLE_ARRAY: status = ((Rectangle*)m_value_ptr+index)->get_member_variable(m_field, val);
+					break;
+    case CIRCLE_ARRAY: status = ((Circle*)m_value_ptr+index)->get_member_variable(m_field, val);
+          break;
+    case TRIANGLE_ARRAY: status = ((Triangle*)m_value_ptr+index)->get_member_variable(m_field, val);
+          break;
+    case TEXTBOX_ARRAY: status = ((Textbox*)m_value_ptr+index)->get_member_variable(m_field, val);
+          break;
+    case PIXMAP_ARRAY: status = ((Pixmap*)m_value_ptr+index)->get_member_variable(m_field, val);
+          break;
+		default: 
+					break;
+	}
+		assert(status == OK);
+		return val;
 }
 
-double Symbol::get_double(int index)
+double Symbol::get_double(int index, std::string m_field)
 {
-	return *((double*)m_value_ptr);
+	if(m_type != CIRCLE_ARRAY && m_type != RECTANGLE_ARRAY && m_type != TRIANGLE_ARRAY && m_type != TEXTBOX_ARRAY && m_type != PIXMAP_ARRAY)
+    return *((double*)m_value_ptr+index);
+    double val;
+    Status status;
+  switch(m_type)
+  {
+    case RECTANGLE_ARRAY: status = ((Rectangle*)m_value_ptr+index)->get_member_variable(m_field, val);
+          break;
+    case CIRCLE_ARRAY: status = ((Circle*)m_value_ptr+index)->get_member_variable(m_field, val);
+          break;
+    case TRIANGLE_ARRAY: status = ((Triangle*)m_value_ptr+index)->get_member_variable(m_field, val);
+          break;
+    case TEXTBOX_ARRAY: status = ((Textbox*)m_value_ptr+index)->get_member_variable(m_field, val);
+          break;
+    case PIXMAP_ARRAY: status = ((Pixmap*)m_value_ptr+index)->get_member_variable(m_field, val);
+          break;
+    default:
+          break;
+  }
+    assert(status == OK);
+    return val;
+
 }
 
-std::string Symbol::get_string(int index)
+std::string Symbol::get_string(int index, std::string m_field)
 {
-	return *((std::string*)m_value_ptr+index);
+	if(m_type != CIRCLE_ARRAY && m_type != RECTANGLE_ARRAY && m_type != TRIANGLE_ARRAY && m_type != TEXTBOX_ARRAY && m_type != PIXMAP_ARRAY)
+    return *((std::string*)m_value_ptr+index);
+    std::string val;
+    Status status;
+  switch(m_type)
+  {
+    case RECTANGLE_ARRAY: status = ((Rectangle*)m_value_ptr+index)->get_member_variable(m_field, val);
+          break;
+    case CIRCLE_ARRAY: status = ((Circle*)m_value_ptr+index)->get_member_variable(m_field, val);
+          break;
+    case TRIANGLE_ARRAY: status = ((Triangle*)m_value_ptr+index)->get_member_variable(m_field, val);
+          break;
+    case TEXTBOX_ARRAY: status = ((Textbox*)m_value_ptr+index)->get_member_variable(m_field, val);
+          break;
+    case PIXMAP_ARRAY: status = ((Pixmap*)m_value_ptr+index)->get_member_variable(m_field, val);
+          break;
+    default:
+          break;
+  }
+    assert(status == OK);
+    return val;
+
 }
 
 int Symbol::get_size()
@@ -252,6 +356,7 @@ Game_object* Symbol::get_game_object_array_value(int size)
     Pixmap *object_ptr = (Pixmap*)m_value_ptr;
 		return &(object_ptr[size]);
   }
+	return NULL;
 }
 	
 	

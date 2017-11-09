@@ -11,6 +11,7 @@ class Variable
     Variable(Symbol*); //bitchass constructor
     Variable(Symbol*, Expression*); //stupid array constructor
 		Variable(Symbol*, std::string);
+		Variable(Symbol*, Expression*, std::string);
     Gpl_type get_type();
     int get_int_val();
     double get_double_val();

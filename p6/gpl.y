@@ -18,6 +18,7 @@ Game_object* cur_object_under_construction;
 Animation_block* animation_block_just_created;
 std::string cur_object_under_construction_name;
 std::string animation_block_just_created_name;
+bool error_object;
 
 
 // bison syntax to indicate the end of the header
@@ -195,7 +196,7 @@ variable_declaration:
 	      int initial_value = 0;
 	      if($3 != NULL)
 	      {
-		      if($3->get_type() == DOUBLE || $3->get_type() == STRING)
+		      if($3->get_type() == DOUBLE || $3->get_type() == STRING || $3->get_type() == ANIMATION_BLOCK)
 		      {
 		        Error::error(Error::INVALID_TYPE_FOR_INITIAL_VALUE, gpl_type_to_string($3->get_type()), *$2, gpl_type_to_string($1));
 		      }
@@ -210,7 +211,7 @@ variable_declaration:
 	      double initial_value = 0.0;
 	      if($3 != NULL)
 	      { 
-		      if($3->get_type() == STRING)
+		      if($3->get_type() == STRING || $3->get_type() == ANIMATION_BLOCK)
 		      {
 		        Error::error(Error::INVALID_TYPE_FOR_INITIAL_VALUE, gpl_type_to_string($3->get_type()), *$2, gpl_type_to_string($1));
 		      }
@@ -224,25 +225,32 @@ variable_declaration:
       }	
 	    if($1 == STRING)
 	    {
-	      std::string initial_value = "";
-	      if($3 != NULL)
-	      {
-					std::ostringstream num;
-	        if($3->get_type() == INT)
-					{
-		  			num << $3->eval_int();
-		  			initial_value = num.str();
-					}
-          else if($3->get_type() == DOUBLE)
+				std::string initial_value = "";
+				if($3 != NULL)
+				{
+					if($3->get_type() == ANIMATION_BLOCK)
           {
-            num << $3->eval_double();
-            initial_value = num.str();
-          }
+            Error::error(Error::INVALID_TYPE_FOR_INITIAL_VALUE, gpl_type_to_string($3->get_type()), *$2, gpl_type_to_string($1));
+					}
 					else
-	      	  initial_value = $3->eval_string();
-	      }
-      	  Symbol* my_symbol = new Symbol(initial_value, *$2);
-          symbol_table->insert(*$2, my_symbol);
+	      	{
+						std::ostringstream num;
+	        	if($3->get_type() == INT)
+						{
+		  				num << $3->eval_int();
+		  				initial_value = num.str();
+						}
+          	else if($3->get_type() == DOUBLE)
+          	{
+           	  num << $3->eval_double();
+            	initial_value = num.str();
+          	}
+						else
+	      	  	initial_value = $3->eval_string();
+	      	}
+				}
+      	Symbol* my_symbol = new Symbol(initial_value, *$2);
+        symbol_table->insert(*$2, my_symbol);
       }  
 	  }
     }
@@ -304,14 +312,47 @@ optional_initializer:
 object_declaration:
     object_type T_ID 
 		{
-			Symbol* sym = new Symbol($1, *$2); 
-			cur_object_under_construction = sym->get_game_object_value();
-			cur_object_under_construction_name = *$2;
-      static Symbol_table *symbol_table = Symbol_table::instance();
-      symbol_table->insert(*$2, sym);
+    	static Symbol_table *symbol_table = Symbol_table::instance();
+			error_object = false;
+			if(symbol_table->lookup(*$2) != NULL)
+			{
+				Error::error(Error::PREVIOUSLY_DECLARED_VARIABLE, *$2);
+				error_object = true;
+			}
+			else
+			{
+				Symbol* sym = new Symbol($1, *$2); 
+				cur_object_under_construction = sym->get_game_object_value();
+				cur_object_under_construction_name = *$2;
+      	symbol_table->insert(*$2, sym);
+			}
 		}
 		T_LPAREN parameter_list_or_empty T_RPAREN
     | object_type T_ID T_LBRACKET expression T_RBRACKET
+		{
+			static Symbol_table *symbol_table = Symbol_table::instance();
+			error_object = false;
+	  	if($4->get_type() != INT || $4->eval_int() <= 0)
+	  	{
+				if($4->get_type() != INT)
+				Error::error(Error::ARRAY_SIZE_MUST_BE_AN_INTEGER, gpl_type_to_base_string($4->get_type()), *$2);
+				else
+					Error::error(Error::INVALID_ARRAY_SIZE, *$2, std::to_string($4->eval_int()));
+	  	}
+			else
+			{
+				if(symbol_table->lookup(*$2) != NULL)
+				{
+					Error::error(Error::PREVIOUSLY_DECLARED_VARIABLE, *$2);
+					error_object = true;
+				}
+				else
+				{
+					Symbol* sym = new Symbol($1, *$2, $4->eval_int());
+        	symbol_table->insert(*$2, sym);
+				}
+			}
+		}
     ;
 
 //---------------------------------------------------------------------
@@ -354,10 +395,17 @@ parameter_list :
 parameter:
     T_ID T_ASSIGN expression
 		{
-			Status status;
-			Gpl_type type;
-			if(status == MEMBER_NOT_DECLARED)
-				Error::error(Error::UNKNOWN_CONSTRUCTOR_PARAMETER, cur_object_under_construction_name, *$1);
+			if(error_object == true)
+			{
+			
+			}
+			else
+			{
+				Status status;
+				Gpl_type type;
+				status = cur_object_under_construction->get_member_variable_type(*$1, type);
+				if(status == MEMBER_NOT_DECLARED)
+					Error::error(Error::UNKNOWN_CONSTRUCTOR_PARAMETER, gpl_type_to_string(cur_object_under_construction->get_type()), *$1);
 			else
 			{
 				status = cur_object_under_construction->get_member_variable_type(*$1, type);
@@ -399,11 +447,12 @@ parameter:
         }
 				if(type == ANIMATION_BLOCK)
 				{
-					if($3->get_type() != type)
+					if(cur_object_under_construction->get_type() != (($3->eval_animation_block())->get_parameter_symbol())->get_type())
 						Error::error(Error::TYPE_MISMATCH_BETWEEN_ANIMATION_BLOCK_AND_OBJECT, cur_object_under_construction_name, animation_block_just_created_name);
 					else
 						status = cur_object_under_construction->set_member_variable(*$1, $3->eval_animation_block());
 				}	
+			}
 			}
 		}				
     ;
@@ -412,12 +461,21 @@ parameter:
 forward_declaration:
     T_FORWARD T_ANIMATION T_ID T_LPAREN animation_parameter T_RPAREN
 		{
-			Symbol* sym = new Symbol(ANIMATION_BLOCK, *$3);
       static Symbol_table *symbol_table = Symbol_table::instance();
-      symbol_table->insert(*$3, sym);
-			animation_block_just_created = sym->get_animation_block_value();
-			animation_block_just_created->initialize($5, *$3);
-			animation_block_just_created_name = *$3;
+			error_object = false;
+			if(symbol_table->lookup(*$3) != NULL)
+			{
+				Error::error(Error::PREVIOUSLY_DECLARED_VARIABLE, *$3);
+				error_object = true;
+			}
+			else
+			{
+				Symbol* sym = new Symbol(ANIMATION_BLOCK, *$3);
+      	symbol_table->insert(*$3, sym);
+				animation_block_just_created = sym->get_animation_block_value();
+				animation_block_just_created->initialize($5, *$3);
+				animation_block_just_created_name = *$3;
+			}
 		}
     ;
 
@@ -454,13 +512,28 @@ animation_block:
 animation_parameter:
     object_type T_ID
     {
-      Symbol* sym = new Symbol($1, *$2);
       static Symbol_table *symbol_table = Symbol_table::instance();
-      symbol_table->insert(*$2, sym);
-			cur_object_under_construction = sym->get_game_object_value();
-			cur_object_under_construction->never_animate();
-			cur_object_under_construction->never_draw();
-			$$ = sym;
+			if(error_object == true)
+			{
+				$$ = NULL;
+			}
+			else
+			{
+				if(symbol_table->lookup(*$2) != NULL)
+				{
+					Error::error(Error::ANIMATION_PARAMETER_NAME_NOT_UNIQUE, *$2);
+					$$ = NULL;
+				}
+				else
+				{
+      		Symbol* sym = new Symbol($1, *$2);
+      		symbol_table->insert(*$2, sym);
+					cur_object_under_construction = sym->get_game_object_value();
+					cur_object_under_construction->never_animate();
+					cur_object_under_construction->never_draw();
+					$$ = sym;
+				}
+			}
     }
     ;
 
@@ -579,7 +652,7 @@ variable:
 				$$ = new Variable(new Symbol(0, ""));
 			}
 			else
-        $$ = new Variable(my_sym);
+				$$ = new Variable(my_sym);
     } 
     | T_ID T_LBRACKET expression T_RBRACKET
     {
@@ -614,12 +687,51 @@ variable:
         Error::error(Error::UNDECLARED_VARIABLE, *$1);
         $$ = new Variable(new Symbol(0, ""));
       }
-      else
-        $$ = new Variable(my_sym, *$3);
+			else if(my_sym->get_type() == INT || my_sym->get_type() == DOUBLE || my_sym->get_type() == STRING)
+			{
+				Error::error(Error::LHS_OF_PERIOD_MUST_BE_OBJECT, *$1);
+				$$ = new Variable(new Symbol(0, ""));
+			}
+			else 
+			{
+				Gpl_type type;
+				Status status = ((my_sym->get_game_object_value())->get_member_variable_type(*$3, type));
+				if(status != OK)
+				{
+					Error::error(Error::UNDECLARED_MEMBER, *$1, *$3);
+					$$ = new Variable(new Symbol(0, ""));
+				}
+				else        
+					$$ = new Variable(my_sym, *$3);
+			}
+			
     }
     | T_ID T_LBRACKET expression T_RBRACKET T_PERIOD T_ID
     {
-      assert(false && "not implemented yet");
+			static Symbol_table *symbol_table = Symbol_table::instance();
+		  Symbol *my_sym = symbol_table->lookup(*$1);
+			if(my_sym == NULL)
+			{
+				Error::error(Error::UNDECLARED_VARIABLE, *$1);
+				$$ = new Variable(new Symbol(0, ""));
+			}
+      else if(my_sym->get_type() == INT_ARRAY || my_sym->get_type() == DOUBLE_ARRAY || my_sym->get_type() == STRING_ARRAY)
+      {
+        Error::error(Error::LHS_OF_PERIOD_MUST_BE_OBJECT, *$1);
+        $$ = new Variable(new Symbol(0, ""));
+      }
+      else
+      {
+        Gpl_type type;
+        Status status = ((my_sym->get_game_object_value())->get_member_variable_type(*$6, type));
+        if(status != OK)
+        {
+          Error::error(Error::UNDECLARED_MEMBER, *$1, *$6);
+          $$ = new Variable(new Symbol(0, ""));
+        }
+        else
+          $$ = new Variable(my_sym, $3, *$6);
+      }
     }
     ;
 
@@ -641,6 +753,16 @@ expression:
         Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, "||");
         $$ = new Expression(0);
       }
+      if($1->get_type() == ANIMATION_BLOCK)
+      {
+        Error::error(Error::INVALID_LEFT_OPERAND_TYPE, "||");
+        $$ = new Expression(0);
+      }
+      if($3->get_type() == ANIMATION_BLOCK)
+      {
+        Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, "||");
+        $$ = new Expression(0);
+      }
       else
         $$ = new Expression($1, OR, $3);
     }
@@ -656,39 +778,129 @@ expression:
         Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, "&&");
         $$ = new Expression(0);
       }
+      if($1->get_type() == ANIMATION_BLOCK)
+      {
+        Error::error(Error::INVALID_LEFT_OPERAND_TYPE, "&&");
+        $$ = new Expression(0);
+      }
+      if($3->get_type() == ANIMATION_BLOCK)
+      {
+        Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, "&&");
+        $$ = new Expression(0);
+      }
       else
         $$ = new Expression($1, AND, $3);
     }
     | expression T_LESS_EQUAL expression 
     {
+      if($1->get_type() == ANIMATION_BLOCK)
+      {
+        Error::error(Error::INVALID_LEFT_OPERAND_TYPE, "<=");
+        $$ = new Expression(0);
+      }
+      if($3->get_type() == ANIMATION_BLOCK)
+      {
+        Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, "<=");
+        $$ = new Expression(0);
+      }
       $$ = new Expression($1, LESS_EQUAL, $3);
     }
     | expression T_GREATER_EQUAL  expression
     {
+      if($1->get_type() == ANIMATION_BLOCK)
+      {
+        Error::error(Error::INVALID_LEFT_OPERAND_TYPE, ">=");
+        $$ = new Expression(0);
+      }
+      if($3->get_type() == ANIMATION_BLOCK)
+      {
+        Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, ">=");
+        $$ = new Expression(0);
+      }
       $$ = new Expression($1, GREATER_EQUAL, $3);
     }
     | expression T_LESS expression
     {
+      if($1->get_type() == ANIMATION_BLOCK)
+      {
+        Error::error(Error::INVALID_LEFT_OPERAND_TYPE, "<");
+        $$ = new Expression(0);
+      }
+      if($3->get_type() == ANIMATION_BLOCK)
+      {
+        Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, "<");
+        $$ = new Expression(0);
+      }
       $$ = new Expression($1, LESS_THAN, $3);
     }
     | expression T_GREATER  expression
     {
+      if($1->get_type() == ANIMATION_BLOCK)
+      {
+        Error::error(Error::INVALID_LEFT_OPERAND_TYPE, ">");
+        $$ = new Expression(0);
+      }
+      if($3->get_type() == ANIMATION_BLOCK)
+      {
+        Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, ">");
+        $$ = new Expression(0);
+      }
       $$ = new Expression($1, GREATER_THAN, $3);
     }
     | expression T_EQUAL expression
     {
+      if($1->get_type() == ANIMATION_BLOCK)
+      {
+        Error::error(Error::INVALID_LEFT_OPERAND_TYPE, "==");
+        $$ = new Expression(0);
+      }
+      if($3->get_type() == ANIMATION_BLOCK)
+      {
+        Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, "==");
+        $$ = new Expression(0);
+      }
       $$ = new Expression($1, EQUAL, $3);
     }
     | expression T_NOT_EQUAL expression
     {
+      if($1->get_type() == ANIMATION_BLOCK)
+      {
+        Error::error(Error::INVALID_LEFT_OPERAND_TYPE, "!=");
+        $$ = new Expression(0);
+      }
+      if($3->get_type() == ANIMATION_BLOCK)
+      {
+        Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, "!=");
+        $$ = new Expression(0);
+      }
       $$ = new Expression($1, NOT_EQUAL, $3);
     }
     | expression T_PLUS expression
     {
+      if($1->get_type() == ANIMATION_BLOCK)
+      {
+        Error::error(Error::INVALID_LEFT_OPERAND_TYPE, "+");
+        $$ = new Expression(0);
+      }
+      if($3->get_type() == ANIMATION_BLOCK)
+      {
+        Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, "+");
+        $$ = new Expression(0);
+      }
         $$ = new Expression($1, PLUS, $3);
     }
     | expression T_MINUS expression
     {
+      if($1->get_type() == ANIMATION_BLOCK)
+      {
+        Error::error(Error::INVALID_LEFT_OPERAND_TYPE, "-");
+        $$ = new Expression(0);
+      }
+      if($3->get_type() == ANIMATION_BLOCK)
+      {
+        Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, "-");
+        $$ = new Expression(0);
+      }
       if($1->get_type() == STRING)
       { 
         Error::error(Error::INVALID_LEFT_OPERAND_TYPE, "-");
@@ -706,6 +918,16 @@ expression:
     }
     | expression T_MULTIPLY expression
     {
+      if($1->get_type() == ANIMATION_BLOCK)
+      {
+        Error::error(Error::INVALID_LEFT_OPERAND_TYPE, "*");
+        $$ = new Expression(0);
+      }
+      if($3->get_type() == ANIMATION_BLOCK)
+      {
+        Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, "*");
+        $$ = new Expression(0);
+      }
       if($1->get_type() == STRING)
       {
 	Error::error(Error::INVALID_LEFT_OPERAND_TYPE, "*");
@@ -723,6 +945,16 @@ expression:
     }
     | expression T_DIVIDE expression
     {
+      if($1->get_type() == ANIMATION_BLOCK)
+      {
+        Error::error(Error::INVALID_LEFT_OPERAND_TYPE, "/");
+        $$ = new Expression(0);
+      }
+      if($3->get_type() == ANIMATION_BLOCK)
+      {
+        Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, "/");
+        $$ = new Expression(0);
+      }
       if($1->get_type() == STRING)
       {
 	Error::error(Error::INVALID_LEFT_OPERAND_TYPE, "/");
@@ -748,6 +980,16 @@ expression:
     }
     | expression T_MOD expression
     {
+      if($1->get_type() == ANIMATION_BLOCK)
+      {
+        Error::error(Error::INVALID_LEFT_OPERAND_TYPE, "%");
+        $$ = new Expression(0);
+      }
+      if($3->get_type() == ANIMATION_BLOCK)
+      {
+        Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, "%");
+        $$ = new Expression(0);
+      }
       if($1->get_type() == STRING || $1->get_type() == DOUBLE)
       {
         Error::error(Error::INVALID_LEFT_OPERAND_TYPE, "%");
@@ -787,6 +1029,11 @@ expression:
     }
     | T_NOT %prec T_UNARY_OPS expression  
     {
+      if($2->get_type() == ANIMATION_BLOCK)
+      {
+        Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, "!");
+        $$ = new Expression(0);
+      }
       if($2->get_type() == STRING)
       {
         Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, "!");

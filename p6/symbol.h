@@ -7,6 +7,7 @@
 #include "textbox.h"
 #include "pixmap.h"
 #include "animation_block.h"
+#include "assert.h"
 
 class Symbol
 {
@@ -24,9 +25,9 @@ class Symbol
     int get_int();
     double get_double();
     std::string get_string();
-    int get_int(int);
-    double get_double(int);
-    std::string get_string(int);
+    int get_int(int, std::string);
+    double get_double(int, std::string);
+    std::string get_string(int, std::string);
 		int get_size();
 		bool is_game_object();
 		Game_object* get_game_object_value();
