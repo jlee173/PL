@@ -19,9 +19,10 @@ Variable::Variable(Symbol *my_sym, Expression *my_expr)
 
 Variable::Variable(Symbol *my_sym, std::string my_field)
 {
+	Game_object *my_game_obj;
 	m_sym = my_sym;
-  Status status =	my_sym->get_game_object_value()->get_member_variable_type(m_field, m_type);
-	m_type = m_type;
+	my_game_obj = my_sym->get_game_object_value();
+  Status status =	my_game_obj->get_member_variable_type(my_field, m_type);
 	if(status == OK)
  	{
 		m_field = my_field;
@@ -30,7 +31,12 @@ Variable::Variable(Symbol *my_sym, std::string my_field)
 
 Gpl_type Variable::get_type()
 {
-  return m_sym->get_type();
+	if(m_field == ""){
+  	return m_sym->get_type();
+	}
+	else{
+		return m_type;
+	}
 }
 
 int Variable::get_int_val()

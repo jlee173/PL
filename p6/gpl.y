@@ -717,8 +717,7 @@ expression:
         $$ = new Expression(0);
       }
       if($1->get_type() != STRING && $3->get_type() != STRING)
-      {	
-				std::cout << gpl_type_to_base_string($1->get_type()) << " " << gpl_type_to_base_string($3->get_type()) << std::endl;
+      {
         $$ = new Expression($1, MULTIPLY, $3);
       }
     }
