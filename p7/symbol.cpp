@@ -364,4 +364,50 @@ Game_object* Symbol::get_game_object_array_value(int size)
 	return NULL;
 }
 	
-	
+void Symbol::assign(Expression *my_expr, Assign_operator my_assign)
+{
+	if(m_type == INT)
+	{
+		if(my_assign == ASSIGN)
+			*((int*)m_value_ptr) = my_expr->eval_int();			
+		if(my_assign == PLUS_ASSIGN)
+			*((int*)m_value_ptr) += my_expr->eval_int();
+		if(my_assign == MINUS_ASSIGN)
+			*((int*)m_value_ptr) -= my_expr->eval_int();
+		if(my_assign == PLUS_PLUS)
+			*((int*)m_value_ptr) += 1;
+		if(my_assign == MINUS_MINUS)
+			*((int*)m_value_ptr) -= 1;
+	}
+	if(m_type == DOUBLE)
+	{
+		if(my_assign == ASSIGN)
+			*((double*)m_value_ptr) = my_expr->eval_double();			
+		if(my_assign == PLUS_ASSIGN)
+			*((double*)m_value_ptr) += my_expr->eval_double();
+		if(my_assign == MINUS_ASSIGN)
+			*((double*)m_value_ptr) -= my_expr->eval_double();
+	}
+	if(m_type == STRING)
+	{
+		if(my_assign == ASSIGN)
+			*((std::string*)m_value_ptr) = my_expr->eval_string();			
+		if(my_assign == PLUS_ASSIGN)
+			*((std::string*)m_value_ptr) += my_expr->eval_string();
+	}
+}
+
+void Symbol::assign(std::string my_field, Expression *my_expr, Assign_operator my_assign)
+{
+
+}	
+
+void Symbol::assign(int index, Expression *my_expr, Assign_operator my_assign)
+{
+
+}	
+
+void Symbol::assign(std::string my_field, int index, Expression *my_expr, Assign_operator my_assign)
+{
+
+}	

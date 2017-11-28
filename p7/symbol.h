@@ -11,6 +11,7 @@
 #include "pixmap.h"
 #include "animation_block.h"
 #include "assert.h"
+#include "expression.h"
 
 class Symbol
 {
@@ -37,7 +38,10 @@ class Symbol
 		Animation_block* get_animation_block_value();
 		Game_object* get_game_object_array_value(int);
 		void set(int);
-
+		void assign(Expression*, Assign_operator);
+		void assign(int, Expression*, Assign_operator);
+		void assign(std::string, Expression*, Assign_operator);
+		void assign(std::string, int, Expression*, Assign_operator);
 
   private:
     static Symbol *m_instance;

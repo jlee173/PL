@@ -17,6 +17,7 @@ extern int line_count;            // current line in the input; from record.l
 #include "statement.h"
 #include "print_stmt.h"
 #include "event_manager.h"
+#include "exit_stmt.h"
 
 
 using namespace std;
@@ -72,7 +73,7 @@ std::stack<Statement_block*> m_stack;
 %token T_FOR                 "for"
 %token T_ELSE                "else"
 %token <union_int> T_PRINT           "print" // value is line number
-%token < > T_EXIT            "exit" // value is line number
+%token <union_int> T_EXIT            "exit" // value is line number
 
 %token T_LPAREN              "("
 %token T_RPAREN              ")"
@@ -752,7 +753,7 @@ for_statement:
 print_statement:
     T_PRINT T_LPAREN expression T_RPAREN
 		{
-			if($3->get_type() == ANIMATION_BLOCK || $3->get_type() == GAME_OBJECT)
+			if($3->get_type() == ANIMATION_BLOCK || $3->get_type() == CIRCLE ||$3->get_type() == RECTANGLE || $3->get_type() == TRIANGLE || $3->get_type() == PIXMAP || $3->get_type() == TEXTBOX)
 			{
 				Error::error(Error::INVALID_TYPE_FOR_PRINT_STMT_EXPRESSION);
 			}
@@ -768,7 +769,15 @@ print_statement:
 exit_statement:
     T_EXIT T_LPAREN expression T_RPAREN
 		{
-			$$ = NULL;
+			if($3->get_type() != INT)
+			{
+				Error::error(Error::EXIT_STATUS_MUST_BE_AN_INTEGER, gpl_type_to_string($3->get_type()));
+			}
+			else
+			{
+				Statement *exit = new Exit_stmt($3, $1);
+				(m_stack.top())->insert(exit);
+			}
 		}
     ;
 

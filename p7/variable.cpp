@@ -192,3 +192,30 @@ Animation_block* Variable::get_animation_block_val()
 {
 	return m_sym->get_animation_block_value();
 }
+
+void Variable::assign(Expression* my_expr, Assign_operator my_assign)
+{
+	if(m_expr == NULL)
+	{
+		if(m_field == "")
+		{
+			m_sym->assign(my_expr, my_assign);
+		}
+		else
+		{
+			m_sym->assign(m_field, my_expr, my_assign);
+		}
+	}
+	else if(m_expr != NULL)
+	{
+		if(m_field == "")
+		{
+			m_sym->assign(m_expr->eval_int(), my_expr, my_assign);
+		}
+		else
+		{
+			m_sym->assign(m_field, m_expr->eval_int(), my_expr, my_assign);
+		}
+	}
+}
+		
