@@ -16,6 +16,7 @@ extern int line_count;            // current line in the input; from record.l
 #include "statement_block.h"
 #include "statement.h"
 #include "print_stmt.h"
+#include "event_manager.h"
 
 
 using namespace std;
@@ -25,7 +26,7 @@ Animation_block* animation_block_just_created;
 std::string cur_object_under_construction_name;
 std::string animation_block_just_created_name;
 bool error_object;
-std::stack<Statement_block> m_stack;
+std::stack<Statement_block*> m_stack;
 
 // bison syntax to indicate the end of the header
 %}
@@ -70,7 +71,7 @@ std::stack<Statement_block> m_stack;
 %token T_IF                  "if"
 %token T_FOR                 "for"
 %token T_ELSE                "else"
-%token < > T_PRINT           "print" // value is line number
+%token <union_int> T_PRINT           "print" // value is line number
 %token < > T_EXIT            "exit" // value is line number
 
 %token T_LPAREN              "("
@@ -511,9 +512,6 @@ block:
     | termination_block
     | animation_block
     | on_block
-		{
-			static Event_manager *event_manager	= Event_manager::instance();
-		}
     ;
 
 //---------------------------------------------------------------------
@@ -569,7 +567,8 @@ check_animation_parameter:
 on_block:
     T_ON keystroke statement_block
 		{
-			$$ = $3;
+			static Event_manager *event_manager	= Event_manager::instance();
+			event_manager->insert($3, $2);
 		}
     ;
 
@@ -687,7 +686,7 @@ statement_block:
 statement_block_creator:
 		{
 			Statement_block *temp_block = new Statement_block;
-			m_stack.push(*temp_block);
+			m_stack.push(temp_block);
 			$$ = temp_block;
 		}
     ;
@@ -753,9 +752,15 @@ for_statement:
 print_statement:
     T_PRINT T_LPAREN expression T_RPAREN
 		{
-			Statement *print = new Print_stmt($3);
-			(m_stack.top()).insert(print);
-			$$ = print;
+			if($3->get_type() == ANIMATION_BLOCK || $3->get_type() == GAME_OBJECT)
+			{
+				Error::error(Error::INVALID_TYPE_FOR_PRINT_STMT_EXPRESSION);
+			}
+			else
+			{
+				Statement *print = new Print_stmt($3, $1);
+				(m_stack.top())->insert(print);
+			}
 		}
     ;
 

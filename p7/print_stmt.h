@@ -8,10 +8,11 @@
 class Print_stmt: public Statement
 {
 	public:
-		Print_stmt(Expression*);
+		Print_stmt(Expression*, int);
 		void execute();
 	
 	private:
 		Expression* m_expr;
+		int m_line;
 };
 #endif

@@ -23,6 +23,7 @@ void Statement_block::execute()
 	{
 		block[i]->execute();
 	}
+	
 }
 
 void Statement_block::insert(Statement* statement)
