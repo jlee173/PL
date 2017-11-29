@@ -215,24 +215,68 @@ std::string Symbol::get_id()
   return m_id;
 }
 
-Gpl_type Symbol::get_type()
+Gpl_type Symbol::get_type(std::string name)
 {
-    return m_type;
+	Status status;
+	Gpl_type my_type;
+	if(!(m_type & GAME_OBJECT) || name == "")
+	{	
+  	return m_type;
+	}
+	else
+	{
+		status = ((Game_object*)m_value_ptr)->get_member_variable_type(name, my_type);
+		assert(status == OK);
+		return my_type;
+	}
 }
 
-int Symbol::get_int()
+int Symbol::get_int(std::string field)
 {
-  return *((int*)(m_value_ptr));
+	Status status;
+	int val;
+	if(!(m_type & GAME_OBJECT) || field == "")
+	{
+  	return *((int*)(m_value_ptr));
+	}
+	else
+	{
+		status = ((Game_object*)m_value_ptr)->get_member_variable(field, val);
+		assert(status == OK);
+		return val;
+	}
 }
 
-double Symbol::get_double()
+double Symbol::get_double(std::string field)
 {
-  return *((double*)(m_value_ptr));
+	Status status;
+	double val;
+	if(!(m_type & GAME_OBJECT) || field == "")
+	{
+  	return *((double*)(m_value_ptr));
+	}
+	else
+	{
+		status = ((Game_object*)m_value_ptr)->get_member_variable(field, val);
+		assert(status == OK);
+		return val;
+	}
 }
 
-std::string Symbol::get_string()
+std::string Symbol::get_string(std::string field)
 {
-  return *((std::string*)(m_value_ptr));
+	Status status;
+	std::string val;
+	if(!(m_type & GAME_OBJECT) || field == "")
+	{
+  	return *((std::string*)(m_value_ptr));
+	}
+	else
+	{
+		status = ((Game_object*)m_value_ptr)->get_member_variable(field, val);
+		assert(status == OK);
+		return val;
+	}
 }
 
 int Symbol::get_int(int index, std::string m_field)
@@ -399,15 +443,434 @@ void Symbol::assign(Expression *my_expr, Assign_operator my_assign)
 
 void Symbol::assign(std::string my_field, Expression *my_expr, Assign_operator my_assign)
 {
-
-}	
+	Status status;
+	if(get_type(my_field) == INT)
+	{
+		if(my_assign == ASSIGN)
+		{
+			status = ((Game_object*)m_value_ptr)->set_member_variable(my_field, get_int((my_field)) + (my_expr->eval_int()));
+			assert(status == OK);
+		}
+		if(my_assign == PLUS_ASSIGN)
+		{
+			status = ((Game_object*)m_value_ptr)->set_member_variable(my_field, (get_int(my_field)) + (my_expr->eval_int()));
+			assert(status == OK);
+		}
+		if(my_assign == MINUS_ASSIGN)
+		{
+			status = ((Game_object*)m_value_ptr)->set_member_variable(my_field, (get_int(my_field)) - (my_expr->eval_int()));
+			assert(status == OK);
+		}
+		if(my_assign == PLUS_PLUS)
+		{
+			status = ((Game_object*)m_value_ptr)->set_member_variable(my_field, (get_int(my_field)) + 1);
+			assert(status == OK);
+		}
+		if(my_assign == MINUS_MINUS)
+		{
+			status = ((Game_object*)m_value_ptr)->set_member_variable(my_field, (get_int(my_field)) - 1);
+			assert(status == OK);
+		}
+	}	
+	if(get_type(my_field) == DOUBLE)
+	{
+		if(my_assign == ASSIGN)
+		{
+			status = ((Game_object*)m_value_ptr)->set_member_variable(my_field, my_expr->eval_double());
+			assert(status == OK);
+		}
+		if(my_assign == PLUS_ASSIGN)
+		{
+			status = ((Game_object*)m_value_ptr)->set_member_variable(my_field, (get_double(my_field)) + (my_expr->eval_double()));
+			assert(status == OK);
+		}
+		if(my_assign == MINUS_ASSIGN)
+		{
+			status = ((Game_object*)m_value_ptr)->set_member_variable(my_field, (get_double(my_field)) - (my_expr->eval_double()));
+			assert(status == OK);
+		}
+	}	
+	if(get_type(my_field) == STRING)
+	{
+		if(my_assign == ASSIGN)
+		{
+			status = ((Game_object*)m_value_ptr)->set_member_variable(my_field, my_expr->eval_string());
+			assert(status == OK);
+		}
+		if(my_assign == PLUS_ASSIGN)
+		{
+			status = ((Game_object*)m_value_ptr)->set_member_variable(my_field, (get_string(my_field)) + (my_expr->eval_string()));
+			assert(status == OK);
+		}
+	}	
+}
 
 void Symbol::assign(int index, Expression *my_expr, Assign_operator my_assign)
 {
-
-}	
-
+	if(m_type == INT_ARRAY)
+	{
+		if(my_assign == ASSIGN)
+		{
+			*((int*)m_value_ptr+index) = my_expr->eval_int();
+		}
+		if(my_assign == PLUS_ASSIGN)
+		{
+			*((int*)m_value_ptr+index) += my_expr->eval_int();
+		}
+		if(my_assign == MINUS_ASSIGN)
+		{
+			*((int*)m_value_ptr+index) -= my_expr->eval_int();
+		}
+		if(my_assign == PLUS_PLUS)
+		{
+			*((int*)m_value_ptr+index) += 1;
+		}
+		if(my_assign == MINUS_MINUS)
+		{
+			*((int*)m_value_ptr+index) -= 1;
+		}
+	}
+	else if(m_type == DOUBLE_ARRAY)
+	{
+		if(my_assign == ASSIGN)
+		{
+			*((double*)m_value_ptr+index) = my_expr->eval_double();
+		}
+		if(my_assign == PLUS_ASSIGN)
+		{
+			*((double*)m_value_ptr+index) += my_expr->eval_double();
+		}
+		if(my_assign == MINUS_ASSIGN)
+		{
+			*((double*)m_value_ptr+index) -= my_expr->eval_double();
+		}
+	}
+	else if(m_type == STRING_ARRAY)
+	{
+		if(my_assign == ASSIGN)
+		{
+			*((std::string*)m_value_ptr+index) = my_expr->eval_string();
+		}
+		if(my_assign == PLUS_ASSIGN)
+		{
+			*((std::string*)m_value_ptr+index) += my_expr->eval_string();
+		}
+	}
+}
+	
 void Symbol::assign(std::string my_field, int index, Expression *my_expr, Assign_operator my_assign)
 {
+	Status status;
+  switch(m_type)
+  {
+    case RECTANGLE_ARRAY:
+				  if(get_type(my_field) == INT)
+					{
+			    	if(my_assign == ASSIGN)
+    				{
+      				status = ((Rectangle*)m_value_ptr+index)->set_member_variable(my_field, get_int((my_field)) + (my_expr->eval_int()));
+      				assert(status == OK);
+    				}
+    				if(my_assign == PLUS_ASSIGN)
+    				{
+      				status = ((Rectangle*)m_value_ptr+index)->set_member_variable(my_field, (get_int(my_field)) + (my_expr->eval_int()));
+      				assert(status == OK);
+    				}
+    				if(my_assign == MINUS_ASSIGN)
+    				{
+      				status = ((Rectangle*)m_value_ptr+index)->set_member_variable(my_field, (get_int(my_field)) - (my_expr->eval_int()));
+      				assert(status == OK);
+    				}
+    				if(my_assign == PLUS_PLUS)
+    				{
+      				status = ((Rectangle*)m_value_ptr+index)->set_member_variable(my_field, (get_int(my_field)) + 1);
+      				assert(status == OK);
+    				}
+    				if(my_assign == MINUS_MINUS)
+    				{
+      				status = ((Rectangle*)m_value_ptr+index)->set_member_variable(my_field, (get_int(my_field)) - 1);
+      				assert(status == OK);
+    				}
+  				}
+          else if(get_type(my_field) == DOUBLE) 
+          {
+            if(my_assign == ASSIGN)
+            {
+              status = ((Rectangle*)m_value_ptr+index)->set_member_variable(my_field, get_double((my_field)) + (my_expr->eval_double()));
+              assert(status == OK);
+            }
+            if(my_assign == PLUS_ASSIGN)
+            {
+              status = ((Rectangle*)m_value_ptr+index)->set_member_variable(my_field, (get_double(my_field)) + (my_expr->eval_double()));
+              assert(status == OK);
+            }
+            if(my_assign == MINUS_ASSIGN)
+            {
+              status = ((Rectangle*)m_value_ptr+index)->set_member_variable(my_field, (get_double(my_field)) - (my_expr->eval_double()));
+              assert(status == OK);
+            }
+          }
+					else if(get_type(my_field) == STRING)
+          {
+            if(my_assign == ASSIGN)
+            {
+              status = ((Rectangle*)m_value_ptr+index)->set_member_variable(my_field, get_string((my_field)) + (my_expr->eval_string()));
+              assert(status == OK);
+            }
+            if(my_assign == PLUS_ASSIGN)
+            {
+              status = ((Rectangle*)m_value_ptr+index)->set_member_variable(my_field, (get_string(my_field)) + (my_expr->eval_string()));
+              assert(status == OK);
+            }
+					}
+          break;
+    case CIRCLE_ARRAY:
+ 				  if(get_type(my_field) == INT)
+					{
+			    	if(my_assign == ASSIGN)
+    				{
+      				status = ((Circle*)m_value_ptr+index)->set_member_variable(my_field, get_int(my_field) + (my_expr->eval_int()));
+      				assert(status == OK);
+    				}
+    				if(my_assign == PLUS_ASSIGN)
+    				{
+      				status = ((Circle*)m_value_ptr+index)->set_member_variable(my_field, (get_int(my_field)) + (my_expr->eval_int()));
+      				assert(status == OK);
+    				}
+    				if(my_assign == MINUS_ASSIGN)
+    				{
+      				status = ((Circle*)m_value_ptr+index)->set_member_variable(my_field, (get_int(my_field)) - (my_expr->eval_int()));
+      				assert(status == OK);
+    				}
+    				if(my_assign == PLUS_PLUS)
+    				{
+      				status = ((Circle*)m_value_ptr+index)->set_member_variable(my_field, (get_int(my_field)) + 1);
+      				assert(status == OK);
+    				}
+    				if(my_assign == MINUS_MINUS)
+    				{
+      				status = ((Circle*)m_value_ptr+index)->set_member_variable(my_field, (get_int(my_field)) - 1);
+      				assert(status == OK);
+    				}
+  				}	
+          else if(get_type(my_field) == DOUBLE) 
+          {
+            if(my_assign == ASSIGN)
+            {
+              status = ((Circle*)m_value_ptr+index)->set_member_variable(my_field, get_double((my_field)) + (my_expr->eval_double()));
+              assert(status == OK);
+            }
+            if(my_assign == PLUS_ASSIGN)
+            {
+              status = ((Circle*)m_value_ptr+index)->set_member_variable(my_field, (get_double(my_field)) + (my_expr->eval_double()));
+              assert(status == OK);
+            }
+            if(my_assign == MINUS_ASSIGN)
+            {
+              status = ((Circle*)m_value_ptr+index)->set_member_variable(my_field, (get_double(my_field)) - (my_expr->eval_double()));
+              assert(status == OK);
+            }
+          }
+          else if(get_type(my_field) == STRING)
+          {
+            if(my_assign == ASSIGN)
+            {
+              status = ((Circle*)m_value_ptr+index)->set_member_variable(my_field, get_string((my_field)) + (my_expr->eval_string()));
+              assert(status == OK);
+            }
+            if(my_assign == PLUS_ASSIGN)
+            {
+              status = ((Circle*)m_value_ptr+index)->set_member_variable(my_field, (get_string(my_field)) + (my_expr->eval_string()));
+              assert(status == OK);
+            }
+					}
+          break;
+    case TRIANGLE_ARRAY:
+				  if(get_type(my_field) == INT)
+					{
+			    	if(my_assign == ASSIGN)
+    				{
+      				status = ((Triangle*)m_value_ptr+index)->set_member_variable(my_field, get_int((my_field)) + (my_expr->eval_int()));
+      				assert(status == OK);
+    				}
+    				if(my_assign == PLUS_ASSIGN)
+    				{
+      				status = ((Triangle*)m_value_ptr+index)->set_member_variable(my_field, (get_int(my_field)) + (my_expr->eval_int()));
+      				assert(status == OK);
+    				}
+    				if(my_assign == MINUS_ASSIGN)
+    				{
+      				status = ((Triangle*)m_value_ptr+index)->set_member_variable(my_field, (get_int(my_field)) - (my_expr->eval_int()));
+      				assert(status == OK);
+    				}
+    				if(my_assign == PLUS_PLUS)
+    				{
+      				status = ((Triangle*)m_value_ptr+index)->set_member_variable(my_field, (get_int(my_field)) + 1);
+      				assert(status == OK);
+    				}
+    				if(my_assign == MINUS_MINUS)
+    				{
+      				status = ((Triangle*)m_value_ptr+index)->set_member_variable(my_field, (get_int(my_field)) - 1);
+      				assert(status == OK);
+    				}
+  				}
+					else if(get_type(my_field) == DOUBLE)
+					{
+            if(my_assign == ASSIGN)
+            {
+              status = ((Triangle*)m_value_ptr+index)->set_member_variable(my_field, get_double((my_field)) + (my_expr->eval_double()));
+              assert(status == OK);
+            }
+            if(my_assign == PLUS_ASSIGN)
+            {
+              status = ((Triangle*)m_value_ptr+index)->set_member_variable(my_field, (get_double(my_field)) + (my_expr->eval_double()));
+              assert(status == OK);
+            }
+            if(my_assign == MINUS_ASSIGN)
+            {
+              status = ((Triangle*)m_value_ptr+index)->set_member_variable(my_field, (get_double(my_field)) - (my_expr->eval_double()));
+              assert(status == OK);
+            }
+					}
+          else if(get_type(my_field) == STRING)
+          {
+            if(my_assign == ASSIGN)
+            {
+              status = ((Triangle*)m_value_ptr+index)->set_member_variable(my_field, get_string((my_field)) + (my_expr->eval_string()));
+              assert(status == OK);
+            }
+            if(my_assign == PLUS_ASSIGN)
+            {
+              status = ((Triangle*)m_value_ptr+index)->set_member_variable(my_field, (get_string(my_field)) + (my_expr->eval_string()));
+              assert(status == OK);
+            }
+					}
+          break;
+    case TEXTBOX_ARRAY:
+				  if(get_type(my_field) == INT)
+					{
+			    	if(my_assign == ASSIGN)
+    				{
+      				status = ((Textbox*)m_value_ptr+index)->set_member_variable(my_field, get_int((my_field)) + (my_expr->eval_int()));
+      				assert(status == OK);
+    				}
+    				if(my_assign == PLUS_ASSIGN)
+    				{
+      				status = ((Textbox*)m_value_ptr+index)->set_member_variable(my_field, (get_int(my_field)) + (my_expr->eval_int()));
+      				assert(status == OK);
+    				}
+    				if(my_assign == MINUS_ASSIGN)
+    				{
+      				status = ((Textbox*)m_value_ptr+index)->set_member_variable(my_field, (get_int(my_field)) - (my_expr->eval_int()));
+      				assert(status == OK);
+    				}
+    				if(my_assign == PLUS_PLUS)
+    				{
+      				status = ((Textbox*)m_value_ptr+index)->set_member_variable(my_field, (get_int(my_field)) + 1);
+      				assert(status == OK);
+    				}
+    				if(my_assign == MINUS_MINUS)
+    				{
+      				status = ((Textbox*)m_value_ptr+index)->set_member_variable(my_field, (get_int(my_field)) - 1);
+      				assert(status == OK);
+    				}
+  				}	
+          else if(get_type(my_field) == DOUBLE) 
+          {
+            if(my_assign == ASSIGN)
+            {
+              status = ((Textbox*)m_value_ptr+index)->set_member_variable(my_field, get_double((my_field)) + (my_expr->eval_double()));
+              assert(status == OK);
+            }
+            if(my_assign == PLUS_ASSIGN)
+            {
+              status = ((Textbox*)m_value_ptr+index)->set_member_variable(my_field, (get_double(my_field)) + (my_expr->eval_double()));
+              assert(status == OK);
+            }
+            if(my_assign == MINUS_ASSIGN)
+            {
+              status = ((Textbox*)m_value_ptr+index)->set_member_variable(my_field, (get_double(my_field)) - (my_expr->eval_double()));
+              assert(status == OK);
+            }
+          }
+          else if(get_type(my_field) == STRING)
+          {
+            if(my_assign == ASSIGN)
+            {
+              status = ((Textbox*)m_value_ptr+index)->set_member_variable(my_field, get_string((my_field)) + (my_expr->eval_string()));
+              assert(status == OK);
+            }
+            if(my_assign == PLUS_ASSIGN)
+            {
+              status = ((Textbox*)m_value_ptr+index)->set_member_variable(my_field, (get_string(my_field)) + (my_expr->eval_string()));
+              assert(status == OK);
+            }
+					}
+          break;
+    case PIXMAP_ARRAY:
+				  if(get_type(my_field) == INT)
+					{
+			    	if(my_assign == ASSIGN)
+    				{
+      				status = ((Pixmap*)m_value_ptr+index)->set_member_variable(my_field, get_int((my_field)) + (my_expr->eval_int()));
+      				assert(status == OK);
+    				}
+    				if(my_assign == PLUS_ASSIGN)
+    				{
+      				status = ((Pixmap*)m_value_ptr+index)->set_member_variable(my_field, (get_int(my_field)) + (my_expr->eval_int()));
+      				assert(status == OK);
+    				}
+    				if(my_assign == MINUS_ASSIGN)
+    				{
+      				status = ((Pixmap*)m_value_ptr+index)->set_member_variable(my_field, (get_int(my_field)) - (my_expr->eval_int()));
+      				assert(status == OK);
+    				}
+    				if(my_assign == PLUS_PLUS)
+    				{
+      				status = ((Pixmap*)m_value_ptr+index)->set_member_variable(my_field, (get_int(my_field)) + 1);
+      				assert(status == OK);
+    				}
+    				if(my_assign == MINUS_MINUS)
+    				{
+      				status = ((Pixmap*)m_value_ptr+index)->set_member_variable(my_field, (get_int(my_field)) - 1);
+      				assert(status == OK);
+    				}
+  				}	
+          else if(get_type(my_field) == DOUBLE) 
+          {
+            if(my_assign == ASSIGN)
+            {
+              status = ((Pixmap*)m_value_ptr+index)->set_member_variable(my_field, get_double((my_field)) + (my_expr->eval_double()));
+              assert(status == OK);
+            }
+            if(my_assign == PLUS_ASSIGN)
+            {
+              status = ((Pixmap*)m_value_ptr+index)->set_member_variable(my_field, (get_double(my_field)) + (my_expr->eval_double()));
+              assert(status == OK);
+            }
+            if(my_assign == MINUS_ASSIGN)
+            {
+              status = ((Pixmap*)m_value_ptr+index)->set_member_variable(my_field, (get_double(my_field)) - (my_expr->eval_double()));
+              assert(status == OK);
+            }
+          }
+          else if(get_type(my_field) == STRING)
+          {
+            if(my_assign == ASSIGN)
+            {
+              status = ((Pixmap*)m_value_ptr+index)->set_member_variable(my_field, get_string((my_field)) + (my_expr->eval_string()));
+              assert(status == OK);
+            }
+            if(my_assign == PLUS_ASSIGN)
+            {
+              status = ((Pixmap*)m_value_ptr+index)->set_member_variable(my_field, (get_string(my_field)) + (my_expr->eval_string()));
+              assert(status == OK);
+            }
+					}
+          break;
+    default:
+          break;
+  }
+}
 
-}	
+ 

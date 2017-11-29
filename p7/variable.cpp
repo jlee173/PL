@@ -44,10 +44,12 @@ Variable::Variable(Symbol *my_sym, Expression *my_expr, std::string my_field)
 
 Gpl_type Variable::get_type()
 {
-	if(m_field == ""){
+	if(m_field == "")
+	{
   	return m_sym->get_type();
 	}
-	else{
+	else
+	{
 		return m_type;
 	}
 }
@@ -193,29 +195,28 @@ Animation_block* Variable::get_animation_block_val()
 	return m_sym->get_animation_block_value();
 }
 
+std::string Variable::get_id()
+{
+	return m_sym->get_id();
+}
+
 void Variable::assign(Expression* my_expr, Assign_operator my_assign)
 {
-	if(m_expr == NULL)
+	if(m_expr == NULL && m_field == "")
 	{
-		if(m_field == "")
-		{
-			m_sym->assign(my_expr, my_assign);
-		}
-		else
-		{
-			m_sym->assign(m_field, my_expr, my_assign);
-		}
+		m_sym->assign(my_expr, my_assign);
 	}
-	else if(m_expr != NULL)
+	else if(m_expr == NULL && m_field != "")
 	{
-		if(m_field == "")
-		{
-			m_sym->assign(m_expr->eval_int(), my_expr, my_assign);
-		}
-		else
-		{
-			m_sym->assign(m_field, m_expr->eval_int(), my_expr, my_assign);
-		}
+		m_sym->assign(m_field, my_expr, my_assign);
+	}
+	else if(m_expr != NULL && m_field == "")
+	{
+		m_sym->assign(m_expr->eval_int(), my_expr, my_assign);
+	}
+	else if(m_expr != NULL && m_field != "")
+	{
+		m_sym->assign(m_field, m_expr->eval_int(), my_expr, my_assign);
 	}
 }
 		

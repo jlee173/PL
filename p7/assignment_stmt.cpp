@@ -3,9 +3,9 @@
 
 Assignment_stmt::Assignment_stmt(Variable *my_var, Expression *my_expr, Assign_operator my_assign)
 {
-	my_var = m_var;
-	my_expr = m_expr;
-	my_assign = m_assign;
+	m_var = my_var;
+	m_expr = my_expr;
+	m_assign = my_assign;
 }
 
 void Assignment_stmt::execute()

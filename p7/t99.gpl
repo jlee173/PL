@@ -1,0 +1,13 @@
+int ints[3];
+
+on akey{
+	ints[0] = 0;
+	ints[1] = 1;
+	ints[2] = 2;
+}
+
+on skey{
+	print(ints[0]);
+	print(ints[1]);
+	print(ints[2]);
+}

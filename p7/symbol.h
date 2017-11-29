@@ -25,10 +25,10 @@ class Symbol
 		Symbol(Gpl_type, std::string);//Game Objects
     void print();
     std::string get_id();
-    Gpl_type get_type();
-    int get_int();
-    double get_double();
-    std::string get_string();
+    Gpl_type get_type(std::string name = "");
+    int get_int(std::string field = "");
+    double get_double(std::string field = "");
+    std::string get_string(std::string field = "");
     int get_int(int, std::string);
     double get_double(int, std::string);
     std::string get_string(int, std::string);

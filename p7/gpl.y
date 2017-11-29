@@ -18,6 +18,8 @@ extern int line_count;            // current line in the input; from record.l
 #include "print_stmt.h"
 #include "event_manager.h"
 #include "exit_stmt.h"
+#include "assignment_stmt.h"
+#include "if_stmt.h"
 
 
 using namespace std;
@@ -163,7 +165,7 @@ std::stack<Statement_block*> m_stack;
 %type  <union_statement> assign_statement
 %type  <union_statement> for_statement
 %type  <union_statement_block> on_block
-
+%type  <union_statement_block> if_block
 
 
 // special token that does not match any production
@@ -672,7 +674,13 @@ keystroke:
 //---------------------------------------------------------------------
 if_block:
     statement_block_creator statement end_of_statement_block
+		{
+			$$ = $1;
+		}
     | statement_block
+		{
+			$$ = $1;
+		}
     ;
 
 //---------------------------------------------------------------------
@@ -733,11 +741,13 @@ statement:
 if_statement:
     T_IF T_LPAREN expression T_RPAREN if_block %prec IF_NO_ELSE
 		{
-			$$ = NULL;
+			Statement *m_if = new If_stmt($3, $5);
+			(m_stack.top())->insert(m_if);
 		}
     | T_IF T_LPAREN expression T_RPAREN if_block T_ELSE if_block
 		{
-			$$ = NULL;
+			Statement *m_if = new If_stmt($3, $5, $7);
+			(m_stack.top())->insert(m_if);
 		}
     ;
 
@@ -785,23 +795,48 @@ exit_statement:
 assign_statement:
     variable T_ASSIGN expression
 		{
-			$$ = NULL;
+ 		  /*if($1->get_type() != $3->get_type())
+			{
+				Error::error(Error::ASSIGNMENT_TYPE_ERROR, gpl_type_to_string($1->get_type()), gpl_type_to_string($3->get_type()));
+			}*/
+			Statement *assign = new Assignment_stmt($1, $3, ASSIGN);
+			(m_stack.top())->insert(assign);
 		}
     | variable T_PLUS_ASSIGN expression
 		{
-			$$ = NULL;
+		/*	if($1->get_type() == INT && $3->get_type() != INT)
+			{
+				Error::error(Error::PLUS_ASSIGNMENT_TYPE_ERROR, gpl_type_to_string($1->get_type()), gpl_type_to_string($3->get_type()));
+			}*/
+			Statement *assign = new Assignment_stmt($1, $3, PLUS_ASSIGN);
+			(m_stack.top())->insert(assign);
 		}
     | variable T_MINUS_ASSIGN expression
 		{
-			$$ = NULL;
+			/*if($1->get_type() == INT && $3->get_type() != INT)
+			{
+				Error::error(Error::MINUS_ASSIGNMENT_TYPE_ERROR, gpl_type_to_string($1->get_type()), gpl_type_to_string($3->get_type()));
+			}*/
+			Statement *assign = new Assignment_stmt($1, $3, MINUS_ASSIGN);
+			(m_stack.top())->insert(assign);
 		}
     | variable T_PLUS_PLUS
 		{
-			$$ = NULL;
+		/*	if($1->get_type() != INT)
+			{
+				Error::error(Error::INVALID_LHS_OF_PLUS_PLUS, $1->get_id(), gpl_type_to_string($1->get_type()));
+			}*/
+			Statement *assign = new Assignment_stmt($1, NULL, PLUS_PLUS);
+			(m_stack.top())->insert(assign);
 		}
     | variable T_MINUS_MINUS
 		{
-			$$ = NULL;
+		/*	if($1->get_type() != INT)
+			{
+				Error::error(Error::INVALID_LHS_OF_MINUS_MINUS);
+			}*/
+			Statement *assign = new Assignment_stmt($1, NULL, MINUS_MINUS);
+			(m_stack.top())->insert(assign);
 		}
     ;
 

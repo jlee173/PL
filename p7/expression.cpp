@@ -698,8 +698,30 @@ std::string Expression::eval_string()
   }
   if(m_lhs == NULL && m_rhs == NULL)
   {
+  	if(m_type == INT)
+  	{
+    	num << eval_int();
+    	return num.str();
+  	}
+  	if(m_type == DOUBLE)
+  	{	
+    	num << eval_double();
+    	return num.str();
+  	}
+
     if(m_variable != NULL)//string variable
     {
+				if(m_type == INT || m_type == INT_ARRAY)
+				{
+					num << m_variable->get_int_val();
+					return num.str();
+				}
+				else if(m_type == DOUBLE || m_type == DOUBLE_ARRAY)
+				{
+					num << m_variable->get_double_val();
+					return num.str();
+				}
+				
          return m_variable->get_string_val();
     }
     else if(m_const != NULL)//string constant
