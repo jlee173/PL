@@ -1298,14 +1298,6 @@ expression:
       }
 			else if($1 == RANDOM)
 			{
-				if($3->eval_double() < 1)
-				{
-					std::ostringstream num;
-					num << $3->eval_double();
-					Error::error(Error::INVALID_ARGUMENT_FOR_RANDOM, num.str());
-					$$ = new Expression(0);
-				}
-				else
 					$$ = new Expression($3, $1);
 			}
       else

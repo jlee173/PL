@@ -408,20 +408,31 @@ int Expression::eval_int()
     {
       if(m_lhs->get_type() == DOUBLE)
       {
-       /* if(m_lhs->eval_double() < 1)
+       if(m_lhs->eval_double() < 1)
         {
           std::ostringstream num;
           num << m_lhs->eval_double();
           Error::error(Error::INVALID_ARGUMENT_FOR_RANDOM, num.str());
-				}*/
+					return (rand() % 2);
+				}
         double val = m_lhs->eval_double();
         int floor_d = floor(val);
         return rand() % floor_d + 0;
       }
       if(m_lhs->get_type() == INT)
       {
-        int val = m_lhs->eval_int();
-        return rand() % val + 0;
+			if(m_lhs->eval_int() < 1)
+        {
+          std::ostringstream num;
+          num << m_lhs->eval_int();
+          Error::error(Error::INVALID_ARGUMENT_FOR_RANDOM, num.str());
+					return (rand() % 2);
+				}
+				else
+      	{
+					int val = m_lhs->eval_int();
+        	return rand() % val + 0;
+				}
       }
     }
 		/*if(m_oper == SQRT)

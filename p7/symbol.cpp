@@ -1,4 +1,7 @@
 #include "symbol.h"
+#include "error.h"
+#include <sstream>
+using std::ostringstream;
 
 Symbol::Symbol(int value, std::string name)
 {
@@ -540,7 +543,15 @@ void Symbol::assign(int index, Expression *my_expr, Assign_operator my_assign)
 	{
 		if(my_assign == ASSIGN)
 		{
-			*((int*)m_value_ptr+index) = my_expr->eval_int();
+			if(index > m_size || index < 0)
+			{
+				ostringstream str_stream;
+				str_stream << index;
+				Error::error(Error::ARRAY_INDEX_OUT_OF_BOUNDS, m_id, str_stream.str());
+				*((int*)m_value_ptr+0) = my_expr->eval_int();
+			}
+			else
+				*((int*)m_value_ptr+index) = my_expr->eval_int();
 		}
 		if(my_assign == PLUS_ASSIGN)
 		{
