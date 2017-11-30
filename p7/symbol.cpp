@@ -413,15 +413,15 @@ void Symbol::assign(Expression *my_expr, Assign_operator my_assign)
 	if(m_type == INT)
 	{
 		if(my_assign == ASSIGN)
-			*((int*)m_value_ptr) = my_expr->eval_int();			
+			*((int*)m_value_ptr) = (my_expr->eval_int());
 		if(my_assign == PLUS_ASSIGN)
 			*((int*)m_value_ptr) += my_expr->eval_int();
 		if(my_assign == MINUS_ASSIGN)
 			*((int*)m_value_ptr) -= my_expr->eval_int();
 		if(my_assign == PLUS_PLUS)
-			*((int*)m_value_ptr) += 1;
+			(*((int*)m_value_ptr))++;
 		if(my_assign == MINUS_MINUS)
-			*((int*)m_value_ptr) -= 1;
+			(*((int*)m_value_ptr))--;
 	}
 	if(m_type == DOUBLE)
 	{
@@ -448,7 +448,7 @@ void Symbol::assign(std::string my_field, Expression *my_expr, Assign_operator m
 	{
 		if(my_assign == ASSIGN)
 		{
-			status = ((Game_object*)m_value_ptr)->set_member_variable(my_field, get_int((my_field)) + (my_expr->eval_int()));
+			status = ((Game_object*)m_value_ptr)->set_member_variable(my_field, (my_expr->eval_int()));
 			assert(status == OK);
 		}
 		if(my_assign == PLUS_ASSIGN)
@@ -568,7 +568,7 @@ void Symbol::assign(std::string my_field, int index, Expression *my_expr, Assign
 					{
 			    	if(my_assign == ASSIGN)
     				{
-      				status = ((Rectangle*)m_value_ptr+index)->set_member_variable(my_field, get_int((my_field)) + (my_expr->eval_int()));
+      				status = ((Rectangle*)m_value_ptr+index)->set_member_variable(my_field, (my_expr->eval_int()));
       				assert(status == OK);
     				}
     				if(my_assign == PLUS_ASSIGN)
@@ -596,7 +596,7 @@ void Symbol::assign(std::string my_field, int index, Expression *my_expr, Assign
           {
             if(my_assign == ASSIGN)
             {
-              status = ((Rectangle*)m_value_ptr+index)->set_member_variable(my_field, get_double((my_field)) + (my_expr->eval_double()));
+              status = ((Rectangle*)m_value_ptr+index)->set_member_variable(my_field, (my_expr->eval_double()));
               assert(status == OK);
             }
             if(my_assign == PLUS_ASSIGN)
@@ -614,7 +614,7 @@ void Symbol::assign(std::string my_field, int index, Expression *my_expr, Assign
           {
             if(my_assign == ASSIGN)
             {
-              status = ((Rectangle*)m_value_ptr+index)->set_member_variable(my_field, get_string((my_field)) + (my_expr->eval_string()));
+              status = ((Rectangle*)m_value_ptr+index)->set_member_variable(my_field, (my_expr->eval_string()));
               assert(status == OK);
             }
             if(my_assign == PLUS_ASSIGN)
@@ -629,7 +629,7 @@ void Symbol::assign(std::string my_field, int index, Expression *my_expr, Assign
 					{
 			    	if(my_assign == ASSIGN)
     				{
-      				status = ((Circle*)m_value_ptr+index)->set_member_variable(my_field, get_int(my_field) + (my_expr->eval_int()));
+      				status = ((Circle*)m_value_ptr+index)->set_member_variable(my_field, (my_expr->eval_int()));
       				assert(status == OK);
     				}
     				if(my_assign == PLUS_ASSIGN)
@@ -657,7 +657,7 @@ void Symbol::assign(std::string my_field, int index, Expression *my_expr, Assign
           {
             if(my_assign == ASSIGN)
             {
-              status = ((Circle*)m_value_ptr+index)->set_member_variable(my_field, get_double((my_field)) + (my_expr->eval_double()));
+              status = ((Circle*)m_value_ptr+index)->set_member_variable(my_field, (my_expr->eval_double()));
               assert(status == OK);
             }
             if(my_assign == PLUS_ASSIGN)
@@ -675,7 +675,7 @@ void Symbol::assign(std::string my_field, int index, Expression *my_expr, Assign
           {
             if(my_assign == ASSIGN)
             {
-              status = ((Circle*)m_value_ptr+index)->set_member_variable(my_field, get_string((my_field)) + (my_expr->eval_string()));
+              status = ((Circle*)m_value_ptr+index)->set_member_variable(my_field, (my_expr->eval_string()));
               assert(status == OK);
             }
             if(my_assign == PLUS_ASSIGN)
@@ -690,7 +690,7 @@ void Symbol::assign(std::string my_field, int index, Expression *my_expr, Assign
 					{
 			    	if(my_assign == ASSIGN)
     				{
-      				status = ((Triangle*)m_value_ptr+index)->set_member_variable(my_field, get_int((my_field)) + (my_expr->eval_int()));
+      				status = ((Triangle*)m_value_ptr+index)->set_member_variable(my_field, (my_expr->eval_int()));
       				assert(status == OK);
     				}
     				if(my_assign == PLUS_ASSIGN)
@@ -718,7 +718,7 @@ void Symbol::assign(std::string my_field, int index, Expression *my_expr, Assign
 					{
             if(my_assign == ASSIGN)
             {
-              status = ((Triangle*)m_value_ptr+index)->set_member_variable(my_field, get_double((my_field)) + (my_expr->eval_double()));
+              status = ((Triangle*)m_value_ptr+index)->set_member_variable(my_field, (my_expr->eval_double()));
               assert(status == OK);
             }
             if(my_assign == PLUS_ASSIGN)
@@ -736,7 +736,7 @@ void Symbol::assign(std::string my_field, int index, Expression *my_expr, Assign
           {
             if(my_assign == ASSIGN)
             {
-              status = ((Triangle*)m_value_ptr+index)->set_member_variable(my_field, get_string((my_field)) + (my_expr->eval_string()));
+              status = ((Triangle*)m_value_ptr+index)->set_member_variable(my_field, (my_expr->eval_string()));
               assert(status == OK);
             }
             if(my_assign == PLUS_ASSIGN)
@@ -751,7 +751,7 @@ void Symbol::assign(std::string my_field, int index, Expression *my_expr, Assign
 					{
 			    	if(my_assign == ASSIGN)
     				{
-      				status = ((Textbox*)m_value_ptr+index)->set_member_variable(my_field, get_int((my_field)) + (my_expr->eval_int()));
+      				status = ((Textbox*)m_value_ptr+index)->set_member_variable(my_field, (my_expr->eval_int()));
       				assert(status == OK);
     				}
     				if(my_assign == PLUS_ASSIGN)
@@ -779,7 +779,7 @@ void Symbol::assign(std::string my_field, int index, Expression *my_expr, Assign
           {
             if(my_assign == ASSIGN)
             {
-              status = ((Textbox*)m_value_ptr+index)->set_member_variable(my_field, get_double((my_field)) + (my_expr->eval_double()));
+              status = ((Textbox*)m_value_ptr+index)->set_member_variable(my_field, (my_expr->eval_double()));
               assert(status == OK);
             }
             if(my_assign == PLUS_ASSIGN)
@@ -797,7 +797,7 @@ void Symbol::assign(std::string my_field, int index, Expression *my_expr, Assign
           {
             if(my_assign == ASSIGN)
             {
-              status = ((Textbox*)m_value_ptr+index)->set_member_variable(my_field, get_string((my_field)) + (my_expr->eval_string()));
+              status = ((Textbox*)m_value_ptr+index)->set_member_variable(my_field, (my_expr->eval_string()));
               assert(status == OK);
             }
             if(my_assign == PLUS_ASSIGN)
@@ -812,7 +812,7 @@ void Symbol::assign(std::string my_field, int index, Expression *my_expr, Assign
 					{
 			    	if(my_assign == ASSIGN)
     				{
-      				status = ((Pixmap*)m_value_ptr+index)->set_member_variable(my_field, get_int((my_field)) + (my_expr->eval_int()));
+      				status = ((Pixmap*)m_value_ptr+index)->set_member_variable(my_field, (my_expr->eval_int()));
       				assert(status == OK);
     				}
     				if(my_assign == PLUS_ASSIGN)
@@ -840,7 +840,7 @@ void Symbol::assign(std::string my_field, int index, Expression *my_expr, Assign
           {
             if(my_assign == ASSIGN)
             {
-              status = ((Pixmap*)m_value_ptr+index)->set_member_variable(my_field, get_double((my_field)) + (my_expr->eval_double()));
+              status = ((Pixmap*)m_value_ptr+index)->set_member_variable(my_field, (my_expr->eval_double()));
               assert(status == OK);
             }
             if(my_assign == PLUS_ASSIGN)
@@ -858,7 +858,7 @@ void Symbol::assign(std::string my_field, int index, Expression *my_expr, Assign
           {
             if(my_assign == ASSIGN)
             {
-              status = ((Pixmap*)m_value_ptr+index)->set_member_variable(my_field, get_string((my_field)) + (my_expr->eval_string()));
+              status = ((Pixmap*)m_value_ptr+index)->set_member_variable(my_field, (my_expr->eval_string()));
               assert(status == OK);
             }
             if(my_assign == PLUS_ASSIGN)

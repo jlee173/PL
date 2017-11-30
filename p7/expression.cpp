@@ -1,6 +1,8 @@
 #include "expression.h"
 #include "variable.h"
 #include <cmath> 
+#include "error.h"
+
 
 Expression::Expression(int value)
 {
@@ -406,6 +408,12 @@ int Expression::eval_int()
     {
       if(m_lhs->get_type() == DOUBLE)
       {
+        /*if(m_lhs->eval_double() < 1)
+        {
+          std::ostringstream num;
+          num << m_lhs->eval_double();
+          Error::error(Error::INVALID_ARGUMENT_FOR_RANDOM, num.str());
+				}*/
         double val = m_lhs->eval_double();
         int floor_d = floor(val);
         return rand() % floor_d + 0;

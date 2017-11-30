@@ -20,6 +20,7 @@ extern int line_count;            // current line in the input; from record.l
 #include "exit_stmt.h"
 #include "assignment_stmt.h"
 #include "if_stmt.h"
+#include "for_stmt.h"
 
 
 using namespace std;
@@ -741,11 +742,19 @@ statement:
 if_statement:
     T_IF T_LPAREN expression T_RPAREN if_block %prec IF_NO_ELSE
 		{
+      if($3->get_type() != INT)
+      {
+        Error::error(Error::INVALID_TYPE_FOR_IF_STMT_EXPRESSION);
+      }
 			Statement *m_if = new If_stmt($3, $5);
 			(m_stack.top())->insert(m_if);
 		}
     | T_IF T_LPAREN expression T_RPAREN if_block T_ELSE if_block
 		{
+      if($3->get_type() != INT)
+      {
+        Error::error(Error::INVALID_TYPE_FOR_IF_STMT_EXPRESSION);
+      }
 			Statement *m_if = new If_stmt($3, $5, $7);
 			(m_stack.top())->insert(m_if);
 		}
@@ -755,7 +764,12 @@ if_statement:
 for_statement:
     T_FOR T_LPAREN statement_block_creator assign_statement end_of_statement_block T_SEMIC expression T_SEMIC statement_block_creator assign_statement end_of_statement_block T_RPAREN statement_block
 		{
-			$$ = NULL;
+			if($7->get_type() != INT)
+			{
+				Error::error(Error::INVALID_TYPE_FOR_FOR_STMT_EXPRESSION);
+			}
+			Statement *m_for = new For_stmt($3, $9, $13, $7);
+			(m_stack.top())->insert(m_for);
 		}
     ;
 
@@ -795,46 +809,73 @@ exit_statement:
 assign_statement:
     variable T_ASSIGN expression
 		{
- 		  /*if($1->get_type() != $3->get_type())
+ 		 if($1->get_type() == INT && $3->get_type() != INT)
 			{
 				Error::error(Error::ASSIGNMENT_TYPE_ERROR, gpl_type_to_string($1->get_type()), gpl_type_to_string($3->get_type()));
-			}*/
+			}
+ 		 if($1->get_type() == RECTANGLE || $1->get_type() == CIRCLE || $1->get_type() == TRIANGLE || $1->get_type() == TEXTBOX || $1->get_type() == PIXMAP)
+			{
+				Error::error(Error::INVALID_LHS_OF_ASSIGNMENT, $1->get_id(), gpl_type_to_string($1->get_type()));
+			}
+ 		 if($1->get_type() == DOUBLE && $3->get_type() == STRING)
+			{
+				Error::error(Error::ASSIGNMENT_TYPE_ERROR, gpl_type_to_string($1->get_type()), gpl_type_to_string($3->get_type()));
+			}
 			Statement *assign = new Assignment_stmt($1, $3, ASSIGN);
 			(m_stack.top())->insert(assign);
 		}
     | variable T_PLUS_ASSIGN expression
 		{
-		/*	if($1->get_type() == INT && $3->get_type() != INT)
+		if($1->get_type() == INT && $3->get_type() != INT)
 			{
 				Error::error(Error::PLUS_ASSIGNMENT_TYPE_ERROR, gpl_type_to_string($1->get_type()), gpl_type_to_string($3->get_type()));
-			}*/
+			}
+		if($1->get_type() == DOUBLE && $3->get_type() == STRING)
+			{
+				Error::error(Error::PLUS_ASSIGNMENT_TYPE_ERROR, gpl_type_to_string($1->get_type()), gpl_type_to_string($3->get_type()));
+			}
+     if($1->get_type() == RECTANGLE || $1->get_type() == CIRCLE || $1->get_type() == TRIANGLE || $1->get_type() == TEXTBOX || $1->get_type() == PIXMAP || $1->get_type() == ANIMATION_BLOCK)
+      {
+        Error::error(Error::INVALID_LHS_OF_PLUS_ASSIGNMENT, $1->get_id(), gpl_type_to_string($1->get_type()));
+      }
 			Statement *assign = new Assignment_stmt($1, $3, PLUS_ASSIGN);
 			(m_stack.top())->insert(assign);
 		}
     | variable T_MINUS_ASSIGN expression
 		{
-			/*if($1->get_type() == INT && $3->get_type() != INT)
+		if($1->get_type() != INT && $1->get_type() != DOUBLE)
 			{
+				Error::error(Error::INVALID_LHS_OF_MINUS_ASSIGNMENT, $1->get_id(), gpl_type_to_string($1->get_type()));
+			}
+		if($1->get_type() == INT && $3->get_type() == DOUBLE)
+		{
 				Error::error(Error::MINUS_ASSIGNMENT_TYPE_ERROR, gpl_type_to_string($1->get_type()), gpl_type_to_string($3->get_type()));
-			}*/
-			Statement *assign = new Assignment_stmt($1, $3, MINUS_ASSIGN);
-			(m_stack.top())->insert(assign);
+		}
+		if($1->get_type() == DOUBLE && $3->get_type() == STRING)
+		{
+				Error::error(Error::MINUS_ASSIGNMENT_TYPE_ERROR, gpl_type_to_string($1->get_type()), gpl_type_to_string($3->get_type()));
+		}
+			else 
+			{
+				Statement *assign = new Assignment_stmt($1, $3, MINUS_ASSIGN);
+				(m_stack.top())->insert(assign);
+			}
 		}
     | variable T_PLUS_PLUS
 		{
-		/*	if($1->get_type() != INT)
+		if($1->get_type() != INT)
 			{
 				Error::error(Error::INVALID_LHS_OF_PLUS_PLUS, $1->get_id(), gpl_type_to_string($1->get_type()));
-			}*/
+			}
 			Statement *assign = new Assignment_stmt($1, NULL, PLUS_PLUS);
 			(m_stack.top())->insert(assign);
 		}
     | variable T_MINUS_MINUS
 		{
-		/*	if($1->get_type() != INT)
+			if($1->get_type() != INT)
 			{
-				Error::error(Error::INVALID_LHS_OF_MINUS_MINUS);
-			}*/
+				Error::error(Error::INVALID_LHS_OF_MINUS_MINUS, $1->get_id(), gpl_type_to_string($1->get_type()));
+			}
 			Statement *assign = new Assignment_stmt($1, NULL, MINUS_MINUS);
 			(m_stack.top())->insert(assign);
 		}
@@ -920,6 +961,11 @@ variable:
         Error::error(Error::LHS_OF_PERIOD_MUST_BE_OBJECT, *$1);
         $$ = new Variable(new Symbol(0, ""));
       }
+       else if($3->get_type() == DOUBLE || $3->get_type() == STRING)
+        { 
+          Error::error(Error::ARRAY_INDEX_MUST_BE_AN_INTEGER, *$1, "A " +gpl_type_to_string($3->get_type())+" expression");
+          $$ = new Variable(new Symbol(0, ""));
+        }
       else
       {
         Gpl_type type;

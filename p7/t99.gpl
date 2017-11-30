@@ -1,13 +1,18 @@
+int index;
+int i = 42;
 int ints[3];
 
-on akey{
-	ints[0] = 0;
-	ints[1] = 1;
-	ints[2] = 2;
+
+on akey
+{
+    for (index = 0; index < 3; index = index + 1)
+    {
+        ints[index] = index;
+    }
 }
 
-on skey{
-	print(ints[0]);
-	print(ints[1]);
-	print(ints[2]);
+on skey
+{
+    i = index + ints[0];
+    print("i = " + i);
 }

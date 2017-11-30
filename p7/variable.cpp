@@ -197,7 +197,10 @@ Animation_block* Variable::get_animation_block_val()
 
 std::string Variable::get_id()
 {
-	return m_sym->get_id();
+	if(m_field == "")
+		return m_sym->get_id();
+	else
+		return (m_sym->get_id() + "." + m_field);
 }
 
 void Variable::assign(Expression* my_expr, Assign_operator my_assign)
