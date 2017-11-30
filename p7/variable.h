@@ -26,6 +26,7 @@ class Variable
 		Animation_block* get_animation_block_val();
 		void assign(Expression*, Assign_operator);
 		std::string get_id(); 		
+		//int eval_index_wtih_error_checking();
 
 
   private:

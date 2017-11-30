@@ -25,6 +25,7 @@ class Symbol
 		Symbol(Gpl_type, std::string);//Game Objects
     void print();
     std::string get_id();
+    Gpl_type get_base_type();
     Gpl_type get_type(std::string name = "");
     int get_int(std::string field = "");
     double get_double(std::string field = "");
@@ -42,6 +43,10 @@ class Symbol
 		void assign(int, Expression*, Assign_operator);
 		void assign(std::string, Expression*, Assign_operator);
 		void assign(std::string, int, Expression*, Assign_operator);
+		bool is_array();
+    bool index_within_range(int index)
+		      {assert(is_array()); return 0 <= index && index < m_size;}
+
 
   private:
     static Symbol *m_instance;

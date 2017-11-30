@@ -6,13 +6,15 @@
 
 Variable::Variable(Symbol *my_sym)
 {
-  m_type = (Gpl_type)(my_sym->get_type() - ARRAY);
+  // m_type = (Gpl_type)(my_sym->get_type() - ARRAY);
+	m_type = my_sym->get_base_type();
   m_sym = my_sym;
 }
 
 Variable::Variable(Symbol *my_sym, Expression *my_expr)
 {
-  m_type = (Gpl_type)(my_sym->get_type() - ARRAY);
+  // m_type = (Gpl_type)(my_sym->get_type() - ARRAY);
+	m_type = my_sym->get_base_type();
 	m_sym = my_sym;
  	m_expr = my_expr;
 }
@@ -44,23 +46,42 @@ Variable::Variable(Symbol *my_sym, Expression *my_expr, std::string my_field)
 
 Gpl_type Variable::get_type()
 {
+		return m_type;
+	/*
 	if(m_field == "")
 	{
-  	return m_sym->get_type();
+  	Gpl_type tmp = m_sym->get_type();
+		if (tmp & ARRAY)
+      return (Gpl_type)(tmp - ARRAY);
+  	else return m_sym->get_type();
 	}
 	else
 	{
 		return m_type;
 	}
+	*/
 }
 
 int Variable::get_int_val()
 {
 
-	if (m_expr != NULL)
+	/*
+  if (m_field == "" && m_expr == NULL)
+  {
+	  return m_sym->get_int();
+  }
+
+	if (m_filed == "" && m_expr != NULL)
 	{
-	return m_sym->get_int(m_expr->eval_int(),m_field);
-	}
+	  return m_sym->get_int(m_expr->eval_int());
+  }
+  
+  // we know tha m_field is NOT empty
+	*/
+	if (m_expr != NULL)
+	  return m_sym->get_int(m_expr->eval_int(),m_field);
+
+
   Game_object *game_obj;
   int my_val;
   if(m_sym->get_size() == -1) {
@@ -71,7 +92,8 @@ int Variable::get_int_val()
     else
     {
       game_obj = m_sym->get_game_object_value();
-      game_obj->get_member_variable(m_field, my_val);
+      Status status = game_obj->get_member_variable(m_field, my_val);
+			assert(status == OK);
       return my_val;
     }
   }
@@ -222,4 +244,31 @@ void Variable::assign(Expression* my_expr, Assign_operator my_assign)
 		m_sym->assign(m_field, m_expr->eval_int(), my_expr, my_assign);
 	}
 }
-		
+
+
+/*
+// eval expression if there is one, return index
+// if index is out of bounds, issue error, return 0 (0 is always in bounds)
+int Variable::eval_index_with_error_checking() 
+{
+  assert(m_expression); // should only be called if this is an array
+
+	int index = m_expression->eval_int();
+
+	// an annoying special case
+	// if the index is -1 it confuses symbol that uses -1 for
+	//   not an array
+	if (m_symbol->index_within_range(index))
+	{
+		return index;
+	}
+	else
+	{
+		ostringstream index_stream;
+		index_stream << index;
+		Error::error(Error::ARRAY_INDEX_OUT_OF_BOUNDS, m_symbol->get_name(),index_stream.str());
+
+		return 0; // 0 is always within range
+	}
+}
+*/

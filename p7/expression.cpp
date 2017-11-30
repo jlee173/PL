@@ -408,7 +408,7 @@ int Expression::eval_int()
     {
       if(m_lhs->get_type() == DOUBLE)
       {
-        /*if(m_lhs->eval_double() < 1)
+       /* if(m_lhs->eval_double() < 1)
         {
           std::ostringstream num;
           num << m_lhs->eval_double();
