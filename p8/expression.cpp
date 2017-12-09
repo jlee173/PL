@@ -50,7 +50,7 @@ Expression::Expression(Expression* lhs, Operator_type type, Expression* rhs)
   m_lhs = lhs;
   m_rhs = rhs;
   m_oper = type;
-  if(m_oper == LESS_THAN || m_oper == GREATER_THAN || m_oper == LESS_EQUAL || m_oper == GREATER_EQUAL || m_oper == EQUAL || m_oper == NOT_EQUAL || m_oper == OR || m_oper == AND || m_oper == MOD)
+  if(m_oper == LESS_THAN || m_oper == GREATER_THAN || m_oper == LESS_EQUAL || m_oper == GREATER_EQUAL || m_oper == EQUAL || m_oper == NOT_EQUAL || m_oper == OR || m_oper == AND || m_oper == MOD || m_oper == NEAR || m_oper == TOUCHES)
   {
     m_type = INT;
   }
@@ -372,7 +372,19 @@ int Expression::eval_int()
           return 0;
       }
     }
-		
+		if(m_oper == NEAR)
+		{
+				Game_object *my_left = m_lhs->get_game_object_value();
+				Game_object *my_right = m_rhs->get_game_object_value();
+				return my_left->near(my_right);
+		}
+
+		if(m_oper == TOUCHES)
+		{
+				Game_object *my_left = m_lhs->get_game_object_value();
+				Game_object *my_right = m_rhs->get_game_object_value();
+				return my_left->touches(my_right);
+		}
   }
   else if(m_lhs != NULL && m_rhs == NULL)
   {
@@ -441,23 +453,7 @@ int Expression::eval_int()
 				}
       }
     }
-		if(m_oper == NEAR)
-		{
-			if((m_lhs->get_game_object_value())->near(m_rhs->get_game_object_value()))
-				return 0;
-			else
-				return 1;
-		}
-
-
-		if(m_oper == TOUCHES)
-		{
-			if((m_lhs->get_game_object_value())->touches(m_rhs->get_game_object_value()))
-				return 0;
-			else
-				return 1;
-		}
-  }
+	}
 return 0;
 }
 

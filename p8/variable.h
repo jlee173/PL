@@ -29,6 +29,8 @@ class Variable
 		std::string get_id(); 		
 		//int eval_index_wtih_error_checking();
 		Game_object* get_game_object_value();
+		bool has_m_field() { return (m_field != ""); }
+		Gpl_type get_type_from_symbol();
 
 
   private:

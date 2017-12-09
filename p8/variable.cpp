@@ -62,6 +62,14 @@ Gpl_type Variable::get_type()
 	*/
 }
 
+Gpl_type Variable::get_type_from_symbol()
+{
+	if(m_sym->get_type() & ARRAY)
+		return (Gpl_type)(m_sym->get_type() - ARRAY);
+	return m_sym->get_type();
+}
+
+
 int Variable::get_int_val()
 {
 
@@ -219,7 +227,11 @@ Animation_block* Variable::get_animation_block_val()
 
 Game_object* Variable::get_game_object_value()
 {
-	return m_sym->get_game_object_value();
+
+	if(m_sym->get_size() == -1)
+		return m_sym->get_game_object_value();
+	else
+		return m_sym->get_game_object_array_value(m_expr->eval_int());
 }
 
 std::string Variable::get_id()

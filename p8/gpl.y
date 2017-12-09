@@ -848,6 +848,74 @@ exit_statement:
 assign_statement:
     variable T_ASSIGN expression
 		{
+
+			//std::cout << "LEFT" << gpl_type_to_string($1->get_type()) << std::endl;
+			//std::cout << "RIGHT" << gpl_type_to_string($3->get_type()) << std::endl;
+
+
+			if($1->get_type() == INT)
+			{
+				if($3->get_type() != INT)
+				{
+					Error::error(Error::ASSIGNMENT_TYPE_ERROR, gpl_type_to_string($1->get_type()), gpl_type_to_string($3->get_type()));
+				}
+				else
+				{
+					Statement *assign = new Assignment_stmt($1, $3, ASSIGN);
+					(m_stack.top())->insert(assign);
+				}
+			}
+			else if($1->get_type() == DOUBLE)
+			{
+				if($3->get_type() == STRING && $3->get_type() == ANIMATION_BLOCK)
+				{
+					Error::error(Error::ASSIGNMENT_TYPE_ERROR, gpl_type_to_string($1->get_type()), gpl_type_to_string($3->get_type()));
+				}
+				else
+				{
+					Statement *assign = new Assignment_stmt($1, $3, ASSIGN);
+					(m_stack.top())->insert(assign);
+				}
+			}
+			else if($1->get_type() == STRING)
+			{
+				if($3->get_type() == ANIMATION_BLOCK)
+				{
+					Error::error(Error::ASSIGNMENT_TYPE_ERROR, gpl_type_to_string($1->get_type()), gpl_type_to_string($3->get_type()));
+				}
+				else
+				{
+					Statement *assign = new Assignment_stmt($1, $3, ASSIGN);
+					(m_stack.top())->insert(assign);
+				}
+			}
+			else if($1->get_type() == ANIMATION_BLOCK)
+			{
+				if($3->get_type() == ANIMATION_BLOCK)
+				{
+					if($1->has_m_field())
+					{
+						//std::cout << "good m_field" << std::endl;
+						Symbol *rhs = ($3->eval_animation_block())->get_parameter_symbol();
+						if($1->get_type_from_symbol() == rhs->get_type())
+						{
+							//std::cout << "good" << std::endl;
+							Statement *assign = new Assignment_stmt($1, $3, ASSIGN);
+							(m_stack.top())->insert(assign);
+						}
+						else
+							Error::error(Error::ANIMATION_BLOCK_ASSIGNMENT_PARAMETER_TYPE_ERROR, gpl_type_to_string($1->get_type_from_symbol()), gpl_type_to_string(rhs->get_type()));
+					}
+					else
+						Error::error(Error::CANNOT_ASSIGN_TO_NON_MEMBER_ANIMATION_BLOCK, $1->get_id());
+				}
+				else
+					Error::error(Error::ASSIGNMENT_TYPE_ERROR, gpl_type_to_string($1->get_type()), gpl_type_to_string($3->get_type()));
+			}
+		}
+
+
+/*
  		 if($1->get_type() == INT && $3->get_type() != INT)
 			{
 				Error::error(Error::ASSIGNMENT_TYPE_ERROR, gpl_type_to_string($1->get_type()), gpl_type_to_string($3->get_type()));
@@ -860,9 +928,11 @@ assign_statement:
 			{
 				Error::error(Error::ASSIGNMENT_TYPE_ERROR, gpl_type_to_string($1->get_type()), gpl_type_to_string($3->get_type()));
 			}
+
 			Statement *assign = new Assignment_stmt($1, $3, ASSIGN);
 			(m_stack.top())->insert(assign);
 		}
+		*/
     | variable T_PLUS_ASSIGN expression
 		{
 		if($1->get_type() == INT && $3->get_type() != INT)
@@ -956,7 +1026,8 @@ variable:
 					$$ = new Variable(new Symbol(0, ""));
 				}
 			}
-		  else $$ = new Variable(my_sym, $3);
+		  else 
+			$$ = new Variable(my_sym, $3);
     }
     | T_ID T_PERIOD T_ID
     {
@@ -1344,11 +1415,17 @@ expression:
     }
     | expression T_NEAR expression
 		{
-				$$ = new Expression($1, NEAR, $3);
+		    if(($1->get_type() & GAME_OBJECT) && ($3->get_type() & GAME_OBJECT))
+				{
+					$$ = new Expression($1, NEAR, $3);
+				}
 		}
     | expression T_TOUCHES expression
 		{
-				$$ = new Expression($1, TOUCHES, $3);
+		    if(($1->get_type() & GAME_OBJECT) && ($3->get_type() & GAME_OBJECT))
+				{	
+					$$ = new Expression($1, TOUCHES, $3);
+				}
 		}	
     ;
 

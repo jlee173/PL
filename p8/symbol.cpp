@@ -401,27 +401,27 @@ Animation_block* Symbol::get_animation_block_value()
 
 Game_object* Symbol::get_game_object_array_value(int size)
 {
-  if(m_type == RECTANGLE)
+  if(m_type == RECTANGLE_ARRAY)
   {
     Rectangle *object_ptr = (Rectangle*)m_value_ptr;
 		return &(object_ptr[size]);
   }
-  if(m_type == CIRCLE)
+  if(m_type == CIRCLE_ARRAY)
   {
     Circle *object_ptr = (Circle*)m_value_ptr;
 		return &(object_ptr[size]);
   }
-  if(m_type == TRIANGLE)
+  if(m_type == TRIANGLE_ARRAY)
   {
     Triangle *object_ptr = (Triangle*)m_value_ptr;
 		return &(object_ptr[size]);
   }
-  if(m_type == TEXTBOX)
+  if(m_type == TEXTBOX_ARRAY)
   {
     Textbox *object_ptr = (Textbox*)m_value_ptr;
 		return &(object_ptr[size]);
   }
-  if(m_type == PIXMAP)
+  if(m_type == PIXMAP_ARRAY)
   {
     Pixmap *object_ptr = (Pixmap*)m_value_ptr;
 		return &(object_ptr[size]);
@@ -536,10 +536,18 @@ void Symbol::assign(std::string my_field, Expression *my_expr, Assign_operator m
     {
     	status = ((Game_object*)m_value_ptr)->get_member_variable(my_field, total);
 			total += my_expr->eval_string();
-      status = ((Rectangle*)m_value_ptr)->set_member_variable(my_field, total);
+      status = ((Game_object*)m_value_ptr)->set_member_variable(my_field, total);
       assert(status == OK);
     }
 	}	
+	else if(get_type(my_field) == ANIMATION_BLOCK)
+	{
+    if(my_assign == ASSIGN)
+    {
+       status = ((Game_object*)m_value_ptr)->set_member_variable(my_field, (my_expr->eval_animation_block()));
+       assert(status == OK);
+       }
+		}
 }
 
 void Symbol::assign(int index, Expression *my_expr, Assign_operator my_assign)
@@ -681,6 +689,14 @@ void Symbol::assign(std::string my_field, int index, Expression *my_expr, Assign
       				assert(status == OK);
     				}
 					}
+					else if(get_type(my_field) == ANIMATION_BLOCK)
+					{
+            if(my_assign == ASSIGN)
+            {
+              status = ((Rectangle*)m_value_ptr+index)->set_member_variable(my_field, (my_expr->eval_animation_block()));
+              assert(status == OK);
+            }
+					}
           break;
     case CIRCLE_ARRAY:
  				  if(get_type(my_field) == INT)
@@ -754,6 +770,14 @@ void Symbol::assign(std::string my_field, int index, Expression *my_expr, Assign
       				status = ((Rectangle*)m_value_ptr+index)->set_member_variable(my_field, total);
       				assert(status == OK);
     				}
+					}
+					else if(get_type(my_field) == ANIMATION_BLOCK)
+					{
+            if(my_assign == ASSIGN)
+            {
+              status = ((Circle*)m_value_ptr+index)->set_member_variable(my_field, (my_expr->eval_animation_block()));
+              assert(status == OK);
+            }
 					}
           break;
     case TRIANGLE_ARRAY:
@@ -829,6 +853,14 @@ void Symbol::assign(std::string my_field, int index, Expression *my_expr, Assign
       				assert(status == OK);
     				}
 					}
+					else if(get_type(my_field) == ANIMATION_BLOCK)
+					{
+            if(my_assign == ASSIGN)
+            {
+              status = ((Triangle*)m_value_ptr+index)->set_member_variable(my_field, (my_expr->eval_animation_block()));
+              assert(status == OK);
+            }
+					}
           break;
     case TEXTBOX_ARRAY:
 				  if(get_type(my_field) == INT)
@@ -903,6 +935,14 @@ void Symbol::assign(std::string my_field, int index, Expression *my_expr, Assign
       				assert(status == OK);
     				}
 					}
+					else if(get_type(my_field) == ANIMATION_BLOCK)
+					{
+            if(my_assign == ASSIGN)
+            {
+              status = ((Textbox*)m_value_ptr+index)->set_member_variable(my_field, (my_expr->eval_animation_block()));
+              assert(status == OK);
+            }
+					}
           break;
     case PIXMAP_ARRAY:
 				  if(get_type(my_field) == INT)
@@ -976,6 +1016,14 @@ void Symbol::assign(std::string my_field, int index, Expression *my_expr, Assign
       				status = ((Rectangle*)m_value_ptr+index)->set_member_variable(my_field, total);
       				assert(status == OK);
     				}
+					}
+					else if(get_type(my_field) == ANIMATION_BLOCK)
+					{
+            if(my_assign == ASSIGN)
+            {
+              status = ((Pixmap*)m_value_ptr+index)->set_member_variable(my_field, (my_expr->eval_animation_block()));
+              assert(status == OK);
+            }
 					}
           break;
     default:
